@@ -1,0 +1,5 @@
+#RELEASE Location of external products
+#CALC=/afs/slac/g/lcls/epics/site
+ASYN=/afs/slac/g/lcls/epics/site
+EPICS_BASE=/afs/slac/g/lcls/epics/base
+INSTALL_LOCATION_APP=$(TOP)/../..
