@@ -1,4 +1,4 @@
-TOP = ..
+TOP = .
 
 DIRS = src
 
@@ -9,6 +9,7 @@ ifeq ($(wildcard $(TOP)/configure),)
   CONFIG = $(TOP)/config
 else
   # EPICS R3.14
+  DIRS = configure src
   include $(TOP)/configure/CONFIG_APP
   ifneq ($(words $(CALC) $(SYNAPPS)), 0)
     # with synApps calc module (contains scalcout)
