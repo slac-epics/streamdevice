@@ -1,0 +1,27 @@
+#==============================================================
+#
+#  Name: RELEASE_NOTES
+#
+#  Rem:  This file contains the release notes for streamdevice as
+#        pertains to the LCLS release format and procedures.
+#
+#        The initial version of this software written 
+#        by Dirk Zimoch at the Swiss Light Source.
+#
+#  Auth: 17-Jul-2007, S. Schuh           (SCHUHS)
+#  Rev:  dd-mmm-yyyy, Reviewer's Name    (USERNAME)
+#--------------------------------------------------------------
+#  Mod:
+#        dd-mmm-yyyy, First Lastname      (USERNAME)
+#          comment
+#
+#==============================================================
+#
+streamdevice-R2-1-patch200606213-LCLS-1: Initial release used in LCLS 
+	Injector and BC1.  No code changes from modules/streamdevice/Devl 
+	version or former epics/site version.  Source is 
+	StreamDevice-2-1-patch200606213 from the Swiss Light Source.  This 
+	module depends on the following modules: calc-R2-6-1-LCLS-1, 
+	sscan-R2-5-2-LCLS-1, and asyn-R4-6.
+
+

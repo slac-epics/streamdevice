@@ -1,5 +1,13 @@
-#RELEASE Location of external products
-CALC=/afs/slac/g/lcls/epics/site
-include $(TOP)/../../configure/RELEASE-asyn
-include $(TOP)/../../configure/RELEASE-base
-INSTALL_LOCATION_APP=$(TOP)/../..
+# Need calc
+CALC=/afs/slac/g/lcls/build/epics/modules/calc/calc-R2-6-1-LCLS-1
+
+# Need sscan
+SSCAN=/afs/slac/g/lcls/build/epics/modules/sscan/sscan-R2-5-2-LCLS-1
+
+# Need asyn
+ASYN=/afs/slac/g/lcls/build/epics/modules/asyn/asyn-R4-6
+
+# EPICS_BASE usually appears last so other apps can override stuff:
+EPICS_BASE_RELEASE=/afs/slac/g/lcls/build/epics/base/base-R1-0-0
+EPICS_BASE=$(EPICS_BASE_RELEASE)
+
