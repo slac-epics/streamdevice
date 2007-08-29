@@ -21,6 +21,7 @@
 #include <devStream.h>
 #include <waveformRecord.h>
 #include <string.h>
+#include <epicsExport.h>
 
 static long readData (dbCommon *record, format_t *format)
 {
@@ -45,7 +46,7 @@ static long readData (dbCommon *record, format_t *format)
                         ((double *)wf->bptr)[wf->nord] = dval;
                         break;
                     case DBF_FLOAT:
-                        ((float *)wf->bptr)[wf->nord] = dval;
+                        ((float *)wf->bptr)[wf->nord] = (float)dval;
                         break;
                     default:
                         errlogSevPrintf (errlogFatal,
@@ -65,10 +66,10 @@ static long readData (dbCommon *record, format_t *format)
                 switch (wf->ftvl)
                 {
                     case DBF_DOUBLE:
-                        ((double *)wf->bptr)[wf->nord] = lval;
+                        ((double *)wf->bptr)[wf->nord] = (double)lval;
                         break;
                     case DBF_FLOAT:
-                        ((float *)wf->bptr)[wf->nord] = lval;
+                        ((float *)wf->bptr)[wf->nord] = (float)lval;
                         break;
                     case DBF_LONG:
                     case DBF_ULONG:
@@ -77,11 +78,11 @@ static long readData (dbCommon *record, format_t *format)
                     case DBF_SHORT:
                     case DBF_USHORT:
                     case DBF_ENUM:
-                        ((short *)wf->bptr)[wf->nord] = lval;
+                        ((short *)wf->bptr)[wf->nord] = (short)lval;
                         break;
                     case DBF_CHAR:
                     case DBF_UCHAR:
-                        ((char *)wf->bptr)[wf->nord] = lval;
+                        ((char *)wf->bptr)[wf->nord] = (char)lval;
                         break;
                     default:
                         errlogSevPrintf (errlogFatal,

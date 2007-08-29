@@ -21,6 +21,7 @@
 #include <devStream.h>
 #include <biRecord.h>
 #include <string.h>
+#include <epicsExport.h>
 
 static long readData (dbCommon *record, format_t *format)
 {

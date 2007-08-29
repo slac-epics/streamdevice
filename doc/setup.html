@@ -16,17 +16,16 @@
 <p>
 <em>StreamDevice</em> requires either 
 <a href="http://www.aps.anl.gov/epics/base/R3-14/index.php"
-target="ex">EPICS base</a> R3.14.6 or higher or
+target="ex">EPICS base R3.14.6 or higher</a> or
 <a href="http://www.aps.anl.gov/epics/base/R3-13.php"
-target="ex">EPICS base</a> R3.13.7 or higher.
+target="ex">EPICS base R3.13.7 or higher</a>.
 How to use <em>StreamDevice</em> on EPICS R3.13 is described on a
 <a href="epics3_13.html">separate page</a>.
-Since <em>StreamDevice</em> comes with an interface to
+Because <em>StreamDevice</em> comes with an interface to
 <a href="http://www.aps.anl.gov/epics/modules/soft/asyn/"
-target="ex"><em>asynDriver</em></a> as the underlying driver layer,
+target="ex"><em>asynDriver</em> version R4-3 or higher</a> as the
+underlying driver layer,
 you should have <em>asynDriver</em> installed first.
-The current <em>StreamDevice</em> version works with
-<em>asynDriver</em> version 4-3 or higher.
 </p>
 <p>
 <em>StreamDevice</em> has support for the
@@ -34,7 +33,20 @@ The current <em>StreamDevice</em> version works with
 <em>calc</em> module of <a target="ex"
 href="http://www.aps.anl.gov/aod/bcda/synApps/index.php"
 ><em>synApps</em></a>.
+Up to <em>calc</em> release R2-6 (<em>synApps</em> release R5_1),
+the <em>scalcout</em> record needs a fix.
+(See separate <a href="scalcout.html"><em>scalcout</em> page</a>.)
 </p>
+<p>
+Up to release R3.14.8.2, a fix in EPICS base is required to build
+<em>StreamDevice</em> on Windows (not cygwin).
+In <kbd>src/iocsh/iocsh.h</kbd>, add the following line
+and rebuild base.
+</p>
+<pre>
+epicsShareFunc int epicsShareAPI iocshCmd(const char *command);
+</pre>
+
 <p>
 Make sure that the <em>asyn</em> library and the <em>calc</em> module of
 <em>synApps</em> can be found, e.g. by
@@ -46,7 +58,8 @@ ASYN=/home/epics/asyn/4-5
 CALC=/home/epics/synApps/calc/2-7
 </pre>
 <p>
-Please refer to the
+For details on <kbd>&lt;top&gt;</kbd> directories and RELEASE files,
+please refer to the
 <a href="http://www.aps.anl.gov/epics/base/R3-14/8-docs/AppDevGuide.pdf"
 target="ex"><em>IOC Application Developer's Guide</em></a> chapter 4:
 EPICS Build Facility.
@@ -55,9 +68,9 @@ EPICS Build Facility.
 <a name="lib"></a>
 <h2>2. Build the <em>StreamDevice</em> Library</h2>
 <p>
-Unpack the file
+Unpack the
 <a href="http://epics.web.psi.ch/software/streamdevice/StreamDevice-2.tgz"
-><em>StreamDevice-2.tgz</em></a> in a <kbd>&lt;top&gt;</kbd> directory
+><em>StreamDevice</em> package</a> in a <kbd>&lt;top&gt;</kbd> directory
 of your application build area.
 (You might probably have done this already.)
 Go to the newly created <em>StreamDevice</em> directory
@@ -134,7 +147,30 @@ asynSetOption ("PS1", 0, "baud", "9600")
 asynSetOption ("PS1", 0, "bits", "8")
 asynSetOption ("PS1", 0, "parity", "none")
 asynSetOption ("PS1", 0, "stop", "1")
+asynSetOption ("PS1", 0, "clocal", "Y")
+asynSetOption ("PS1", 0, "crtscts", "N")
 </pre>
+
+<p>If the power supply was connected via telnet-style TCP/IP
+at address 192.168.164.10 on port 23,
+the startupscript would contain:
+</p>
+<pre>
+epicsEnvSet ("STREAM_PROTOCOL_PATH", ".:../protocols")
+
+drvAsynIPPortConfigure ("PS1", "192.168.164.10:23")
+</pre>
+
+<p>
+With a VXI11 (GPIB via TCP/IP) connection, e.g. a 
+HP E2050A on IP address 192.168.164.10, it would look like this:
+</p>
+<pre>
+epicsEnvSet ("STREAM_PROTOCOL_PATH", ".:../protocols")
+
+vxi11Configure ("PS1","192.168.164.10",1,1000,"hpib")
+</pre>
+
 
 <a name="pro"></a>
 <h2>5. The Protocol File</h2>
@@ -248,7 +284,7 @@ record (ao, "PS1:I-set")
 
 <hr>
 <p align="right"><a href="protocol.html">Next: Protocol Files</a></p>
-<p><small>Dirk Zimoch, 2006</small></p>
+<p><small>Dirk Zimoch, 2007</small></p>
 <script src="stream.js" type="text/javascript"></script>
 </body>
 </html>

@@ -71,6 +71,7 @@ void acceptEvent(unsigned short mask, unsigned short timeout)
 ***************************************/
 
 enum Flags {
+    // 0x00FFFFFF reserved for StreamCore
     None = 0x0000,
     IgnoreExtraInput = 0x0001,
     InitRun = 0x0002,
@@ -89,7 +90,7 @@ enum Flags {
                     AcceptInput|AcceptEvent|BusPending
 };
 
-class StreamFormat;
+struct StreamFormat;
 
 class StreamCore :
     StreamProtocolParser::Client,
@@ -147,8 +148,8 @@ protected:
     unsigned long readTimeout;
     unsigned long pollPeriod;
     unsigned long maxInput;
-    unsigned long low;
-    unsigned long high;
+    bool inTerminatorDefined;
+    bool outTerminatorDefined;
     StreamBuffer inTerminator;
     StreamBuffer outTerminator;
     StreamBuffer separator;
@@ -167,7 +168,7 @@ protected:
     ProtocolResult runningHandler;
     StreamBuffer fieldAddress;
 
-    StreamBusInterface::IoStatus lastInputStatus;
+    StreamIoStatus lastInputStatus;
     bool unparsedInput;
 
     StreamCore(const StreamCore&); // undefined
@@ -192,18 +193,20 @@ protected:
         StreamBuffer& address) = 0;
 
 // StreamBusInterface::Client methods
-    void lockCallback(StreamBusInterface::IoStatus status);
-    void writeCallback(StreamBusInterface::IoStatus status);
-    long readCallback(StreamBusInterface::IoStatus status,
+    void lockCallback(StreamIoStatus status);
+    void writeCallback(StreamIoStatus status);
+    long readCallback(StreamIoStatus status,
         const void* input, long size);
-    void eventCallback(StreamBusInterface::IoStatus status);
-    void execCallback(StreamBusInterface::IoStatus status);
-    void connectCallback(StreamBusInterface::IoStatus status);
+    void eventCallback(StreamIoStatus status);
+    void execCallback(StreamIoStatus status);
+    void connectCallback(StreamIoStatus status);
+    const char* getInTerminator(size_t& length);
+    const char* getOutTerminator(size_t& length);
 
 // virtual methods
     virtual void protocolStartHook() {}
     virtual void protocolFinishHook(ProtocolResult) {}
-    virtual void startTimer(unsigned short timeout) = 0;
+    virtual void startTimer(unsigned long timeout) = 0;
     virtual bool formatValue(const StreamFormat&, const void* fieldaddress) = 0;
     virtual bool matchValue (const StreamFormat&, const void* fieldaddress) = 0;
     virtual void lockMutex() = 0;

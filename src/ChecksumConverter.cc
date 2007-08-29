@@ -20,11 +20,12 @@
 
 #include "StreamFormatConverter.h"
 #include "StreamError.h"
-#if defined (__vxworks) || defined (vxWorks)
-// vxWorks has no strncasecmp
+#if defined(__vxworks) || defined(vxWorks) || defined(_WIN32) || defined(__rtems__)
+// These systems have no strncasecmp
 #include <epicsString.h>
 #define strncasecmp epicsStrnCaseCmp
 #endif
+#include <ctype.h>
 
 typedef unsigned long ulong;
 typedef unsigned char uchar;
@@ -47,6 +48,11 @@ static ulong xor8(const uchar* data, ulong len, ulong sum)
         sum ^= *data++;
     }
     return sum;
+}
+
+static ulong xor7(const uchar* data, ulong len, ulong sum)
+{
+    return xor8(data, len, sum) & 0x7F;
 }
 
 static ulong crc_0x07(const uchar* data, ulong len, ulong crc)
@@ -425,6 +431,23 @@ static ulong adler32(const uchar* data, ulong len, ulong init)
    return b << 16 | a;
 }
 
+static ulong hexsum(const uchar* data, ulong len, ulong sum)
+{
+    // Add all hex digits, ignore all other bytes.
+    ulong d; 
+    while (len--)
+    {
+        d = toupper(*data++);
+        if (isxdigit(d))
+        {
+            if (isdigit(d)) d -= '0';
+            else d -= 'A' - 0x0A;
+            sum += d;
+        }
+    }
+    return sum;
+}
+
 struct checksum
 {
     const char* name;
@@ -435,18 +458,30 @@ struct checksum
 };
 
 static checksum checksumMap[] =
+// You may add your own checksum functions to this map.
 {
 //    name      func              init        xorout  bytes  chk("123456789")
     {"sum",     sum,              0x00,       0x00,       1}, // 0xDD
     {"sum8",    sum,              0x00,       0x00,       1}, // 0xDD
     {"sum16",   sum,              0x0000,     0x0000,     2}, // 0x01DD
     {"sum32",   sum,              0x00000000, 0x00000000, 4}, // 0x000001DD
-    {"nsum",    sum,              0xff,       0xff,       1}, // 0x23
-    {"negsum",  sum,              0xff,       0xff,       1}, // 0x23
-    {"-sum",    sum,              0xff,       0xff,       1}, // 0x23
-    {"notsum",  sum,              0x00,       0xff,       1}, // 0x22
-    {"~sum",    sum,              0x00,       0xff,       1}, // 0x22
+    {"nsum",    sum,              0xFF,       0xFF,       1}, // 0x23
+    {"negsum",  sum,              0xFF,       0xFF,       1}, // 0x23
+    {"-sum",    sum,              0xFF,       0xFF,       1}, // 0x23
+    {"nsum8",   sum,              0xFF,       0xFF,       1}, // 0x23
+    {"negsum8", sum,              0xFF,       0xFF,       1}, // 0x23
+    {"-sum8",   sum,              0xFF,       0xFF,       1}, // 0x23
+    {"nsum16",  sum,              0xFFFF,     0xFFFF,     2}, // 0xFE23
+    {"negsum16",sum,              0xFFFF,     0xFFFF,     2}, // 0xFE23
+    {"-sum16",  sum,              0xFFFF,     0xFFFF,     2}, // 0xFE23
+    {"nsum32",  sum,              0xFFFFFFFF, 0xFFFFFFFF, 4}, // 0xFFFFFE23
+    {"negsum32",sum,              0xFFFFFFFF, 0xFFFFFFFF, 4}, // 0xFFFFFE23
+    {"-sum32",  sum,              0xFFFFFFFF, 0xFFFFFFFF, 4}, // 0xFFFFFE23
+    {"notsum",  sum,              0x00,       0xFF,       1}, // 0x22
+    {"~sum",    sum,              0x00,       0xFF,       1}, // 0x22
     {"xor",     xor8,             0x00,       0x00,       1}, // 0x31
+    {"xor8",    xor8,             0x00,       0x00,       1}, // 0x31
+    {"xor7",    xor7,             0x00,       0x00,       1}, // 0x31
     {"crc8",    crc_0x07,         0x00,       0x00,       1}, // 0xF4
     {"ccitt8",  crc_0x31,         0x00,       0x00,       1}, // 0xA1
     {"crc16",   crc_0x8005,       0x0000,     0x0000,     2}, // 0xFEE8
@@ -456,8 +491,11 @@ static checksum checksumMap[] =
     {"crc32",   crc_0x04C11DB7,   0xFFFFFFFF, 0xFFFFFFFF, 4}, // 0xFC891918
     {"crc32r",  crc_0x04C11DB7_r, 0xFFFFFFFF, 0xFFFFFFFF, 4}, // 0xCBF43926
     {"jamcrc",  crc_0x04C11DB7_r, 0xFFFFFFFF, 0x00000000, 4}, // 0x340BC6D9
-    {"adler32", adler32,          0x00000001, 0x00000000, 4}  // 0x091E01DE
+    {"adler32", adler32,          0x00000001, 0x00000000, 4}, // 0x091E01DE
+    {"hexsum8", hexsum,           0x00,       0x00,       1}  // 0x2D
 };
+
+static ulong mask[5] = {0, 0xFF, 0xFFFF, 0xFFFFFF, 0xFFFFFFFF};
 
 class ChecksumConverter : public StreamFormatConverter
 {
@@ -472,7 +510,7 @@ parse(const StreamFormat&, StreamBuffer& info, const char*& source, bool)
     const char* p = strchr(source, '>');
     if (!p)
     {
-        error ("Missing terminating '>' in checksum format.\n");
+        error ("Missing closing '>' in checksum format.\n");
         return false;
     }
 
@@ -497,18 +535,19 @@ printPseudo(const StreamFormat& format, StreamBuffer& output)
 {
     ulong sum;
     int fnum = format.info[0];
+    int start = format.width;
+    int length = output.length()-format.width;
+    if (format.prec > 0) length -= format.prec;
 
     debug("ChecksumConverter %s: output to check: \"%s\"\n",
-        checksumMap[fnum].name, output.expand(format.width)());
+        checksumMap[fnum].name, output.expand(start,length)());
 
     sum = checksumMap[fnum].xorout ^ checksumMap[fnum].func(
-        reinterpret_cast<uchar*>(output(format.width)),
-        output.length()-format.width,
-        checksumMap[fnum].init);
+        reinterpret_cast<uchar*>(output(start)), length,
+        checksumMap[fnum].init) & mask[checksumMap[fnum].bytes];
 
     debug("ChecksumConverter %s: output checksum is 0x%lX\n",
-        checksumMap[fnum].name,
-        sum & (0xffffffff >> (8*(4-checksumMap[fnum].bytes))));
+        checksumMap[fnum].name, sum);
 
     int i;
     unsigned outchar;
@@ -550,9 +589,12 @@ scanPseudo(const StreamFormat& format, StreamBuffer& input, long& cursor)
 {
     int fnum = format.info[0];
     ulong sum;
-
+    int start = format.width;
+    int length = cursor-format.width;
+    if (format.prec > 0) length -= format.prec;
+    
     debug("ChecksumConverter %s: input to check: \"%s\n",
-        checksumMap[fnum].name, input.expand(format.width,cursor)());
+        checksumMap[fnum].name, input.expand(start,length)());
 
     if (input.length() - cursor <
         (format.flags & zero_flag ? 2 : 1) * checksumMap[fnum].bytes)
@@ -562,12 +604,11 @@ scanPseudo(const StreamFormat& format, StreamBuffer& input, long& cursor)
     }
 
     sum = checksumMap[fnum].xorout ^ checksumMap[fnum].func(
-        reinterpret_cast<uchar*>(input(format.width)),
-        cursor-format.width, checksumMap[fnum].init);
+        reinterpret_cast<uchar*>(input(start)), length,
+        checksumMap[fnum].init) & mask[checksumMap[fnum].bytes];
 
     debug("ChecksumConverter %s: input checksum is 0x%0*lX\n",
-        checksumMap[fnum].name, 2*checksumMap[fnum].bytes,
-        sum & (0xffffffff >> (8*(4-checksumMap[fnum].bytes))));
+        checksumMap[fnum].name, 2*checksumMap[fnum].bytes, sum);
 
     int i,j;
     unsigned inchar;

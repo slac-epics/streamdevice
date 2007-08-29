@@ -1,106 +1,43 @@
 # example stream protocol file
 
 Terminator = CR LF;
-ReplyTimeout = 10000;
-ReadTimeout = 1000;
+ReplyTimeout = 10000; # 10 sec is very long, for keyboard input
+ReadTimeout = 1000;   # also long for keyboard input
 myvar = blabla 1 2 3;
 
+# note the field access
 ai { 
-#    out "%(NAME)s [int] ? ";
-#    in "%i";   # read to RVAL and convert
-    out "%(NAME)s [float] ? ";
-    in "%f";   # read to VAL and don't convert
-    @init {out '%(NAME)s = %f';}
+    out "%(NAME)s [int] ? ";
+    in "value = %i";   # read to RVAL and convert
 }
 
 set-ao {
-    out '%(NAME)s = %f [0x%04x]';
-    @init {ai;out "got %f";}
+    out '%(NAME)s = %f %(EGU)s [0x%04x]';
 }
 
 li { 
     out "%(NAME)s [int] ? ";
     in "%i";
-    @init {out '%(NAME)s = %i';}
 }
 
 lo { 
-    out '%(NAME)s = %i';
-    @init {lo;
-#        li;
-    }
+    out '%(NAME)s = %i = %#x = %b(bin) = %D(BCD)';
 }
 
 bi { 
-    @init {out '%(NAME)s = %{false|true} = "%s"';}
-#    out "%(NAME)s [string] ? ";
-#    in "%s";
-    out "%(NAME)s [int] ? ";
+    out "%(NAME)s [0 or 1] ? ";
     in "%i";
 }
 
+# using variables
+s0 = false;
+s1 = true;
 bo { 
-    out '%(NAME)s = %{false|true} = "%s" [%i]';
-    @init {bo;
-        bi;
-    }
+    out '%(NAME)s = %i = %{\${s0}|\${s1}} = "%s"';
 }
-
-
-
-@init {}
-
-#@init {out 'init %(NAME)s "\$0"'}
-
-ao-with-egu {
-    out "%(DESC)s: %.3f %(EGU)s"; 
-}
-
-wait-and-write
-{
-  out "wait for \$1 seconds...";
-  wait $1000;
-  ao-with-egu;
-}
-
-countdown
-{
-    @init {}
-    R = "";
-#    R=CR "\e[K";
-#    outTerminator="";
-    out $R "10"; wait 1000;
-    out $R "9"; wait 1000;
-    out $R "8"; wait 1000;
-    out $R "7"; wait 1000;
-    out $R "6"; wait 1000;
-    out $R "5"; wait 1000;
-    out $R "4"; wait 1000;
-    out $R "3"; wait 1000;
-    out $R "2"; wait 1000;
-    out $R "1"; wait 1000;
-    out $R "%f";
-}
-
-printa { out $a };
-
-a = "xxx";
-
-b = $a;
-
-a = "yyy";
-
-t = 100;
-
-print {
- out "a=\$a"; printa; out $b; out "%s"; }
 
 enums 
 {
-    @init { 
-        out "%(NAME)s ? ";
-        in "%d";
-    }
     out "%{choice0|choice1|choice2} %d %s"; 
 }
 
@@ -144,34 +81,12 @@ checksum {
     out "%s%0<adler32> adler32 (ASCII)";
 }
 
-variable = 18 20 2 0 7;
-v2=;
-
 Command {
     out "%s";
-    out $variable;
-    out ${variable};
-    out "\$variable";
-    out "\${variable}";
-    out $V2;
-    out;
 }
 
 info {
     out "%s";
-    in "%39c";
-}
-
-prompt {
-    @init {out "init %(NAME)s\n"}
-    replyTimeout = 10000;
-    OutTerminator = "";
-    out "WRITE [%s]> ";
-    in "%39c";
-}
-
-ID {
-    out "ID?";
     in "%39c";
 }
 
@@ -181,18 +96,16 @@ spy {
     in "%39c";
 }
 
-log {
-    in "%39c"; extraInput=Ignore;
-}
-
+# accessing fields
 calcout {
-    out "OVAL=%f A=%(A)f B=%(B)f C=%(C)f, DESC=%(DESC)s";
+    out "OVAL=%f A=%(A)f B=%(B)f C=%(C)f";
 }
 
 scalcout {
     out "OVAL=%f SOV=%s A=%(A)f B=%(B)f AA=%(AA)s";
 }
 
+# output an array of strings
 string_wave_out {
     separator = ", ";
     out "waveform %(NAME)s = (%s)";
@@ -204,4 +117,3 @@ char_wave_in {
     in "%1000c";
     out 'Got: "%s"' CR LF;
 }
-

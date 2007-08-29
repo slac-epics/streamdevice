@@ -46,7 +46,7 @@ public:
     // * Any index parameter (long) can be negative
     //   meaning "count from end" (-1 is the last byte)
     // * Any returned char* pointer becomes invalid when
-    //   the StreamBuffer is altered.
+    //   the StreamBuffer is modified.
 
     StreamBuffer()
         {init(NULL, 0);}
@@ -64,16 +64,14 @@ public:
         {init(NULL, size);}
 
     ~StreamBuffer()
-        {if (buffer != local) {
-            delete buffer;}
-        }
+        {if (buffer != local) delete buffer;}
 
     // operator (): get char* pointing to index
     const char* operator()(long index=0) const
-        {return buffer+offs+(index<0?index+len:index);}
+        {buffer[offs+len]=0; return buffer+offs+(index<0?index+len:index);}
 
     char* operator()(long index=0)
-        {return buffer+offs+(index<0?index+len:index);}
+        {buffer[offs+len]=0; return buffer+offs+(index<0?index+len:index);}
 
     // operator []: get byte at index
     char operator[](long index) const
@@ -90,9 +88,9 @@ public:
     long length() const
         {return len;}
 
-    // capacity: get current memory consumption
+    // capacity: get current max data length (spare one byte for end)
     long capacity() const
-        {return cap;}
+        {return cap-1;}
 
     // end: get pointer to byte after last data byte
     const char* end() const

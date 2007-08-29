@@ -26,6 +26,11 @@
 StreamFormatConverter* StreamFormatConverter::
 registered [256];
 
+StreamFormatConverter::
+~StreamFormatConverter()
+{
+}
+
 void StreamFormatConverter::
 provides(const char* name, const char* provided)
 {
@@ -123,7 +128,18 @@ int StdLongConverter::
 parse(const StreamFormat& fmt, StreamBuffer& info,
     const char*& source, bool scanFormat)
 {
-    if (scanFormat && (fmt.flags & alt_flag)) return false;
+    if (scanFormat && (fmt.flags & alt_flag))
+    {
+        error("Use of modifier '#' not allowed with %%%c input conversion\n",
+            fmt.conv);
+        return false;
+    }
+    if (scanFormat && fmt.prec >= 0)
+    {
+        error("Use of precision field '.%d' not allowed with %%%c input conversion\n",
+            fmt.prec, fmt.conv);
+        return false;
+    }
     copyFormatString(info, source);
     info.append('l');
     info.append(fmt.conv);
@@ -172,6 +188,12 @@ parse(const StreamFormat& fmt, StreamBuffer& info,
     {
         error("Use of modifier '#' not allowed with %%%c input conversion\n",
             fmt.conv);
+        return false;
+    }
+    if (scanFormat && fmt.prec >= 0)
+    {
+        error("Use of precision field '.%d' not allowed with %%%c input conversion\n",
+            fmt.prec, fmt.conv);
         return false;
     }
     copyFormatString(info, source);
@@ -223,6 +245,12 @@ parse(const StreamFormat& fmt, StreamBuffer& info,
         error("Use of modifiers '+', ' ', '0', '#' "
             "not allowed with %%%c conversion\n",
             fmt.conv);
+        return false;
+    }
+    if (scanFormat && fmt.prec >= 0)
+    {
+        error("Use of precision field '.%d' not allowed with %%%c input conversion\n",
+            fmt.prec, fmt.conv);
         return false;
     }
     copyFormatString(info, source);
@@ -300,6 +328,12 @@ parse(const StreamFormat& fmt, StreamBuffer& info,
             fmt.conv);
         return false;
     }
+    if (scanFormat && fmt.prec >= 0)
+    {
+        error("Use of precision field '.%d' not allowed with %%%c input conversion\n",
+            fmt.prec, fmt.conv);
+        return false;
+    }
     copyFormatString(info, source);
     info.append(fmt.conv);
     if (scanFormat)
@@ -344,7 +378,13 @@ parse(const StreamFormat& fmt, StreamBuffer& info,
             fmt.conv);
         return false;
     }
-    info.printf("%%%d[", fmt.width);
+    if (scanFormat && fmt.prec >= 0)
+    {
+        error("Use of precision field '.%d' not allowed with %%%c input conversion\n",
+            fmt.prec, fmt.conv);
+        return false;
+    }
+    info.printf("%%%s%d[", fmt.flags & skip_flag ? "*" : "", fmt.width);
     while (*source && *source != ']')
     {
         if (*source == esc) source++;

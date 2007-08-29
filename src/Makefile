@@ -18,6 +18,7 @@
 #                                                              #
 ################################################################
 
+##TOP=../..
 TOP=..
 
 # Look if we have EPICS R3.13 or R3.14
@@ -43,6 +44,12 @@ LIB_LIBS += asyn
 BUSSES += AsynDriver
 endif
 
+ifdef T_A
+ifndef BUSSES
+$(error No bus interface defined! Didn't you set ASYN in your RELEASE file?)
+endif
+endif
+
 ifeq ($(LOADABLE_MODULE),YES)
 SRCS += $(LIBRARY_DEFAULT)_registerRecordDeviceDriver.cpp
 endif 
@@ -50,6 +57,10 @@ SRCS += $(BUSSES:%=%Interface.cc)
 SRCS += $(FORMATS:%=%Converter.cc)
 SRCS += $(RECORDS:%=dev%Stream.c)
 SRCS += $(STREAM_SRCS)
+ifneq ($(filter Regexp,$(FORMATS)),)
+LIB_LIBS += pcre
+endif
+
 
 LIB_LIBS += Com dbIoc dbStaticIoc registryIoc iocsh
 

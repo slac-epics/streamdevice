@@ -49,7 +49,7 @@ printLong(const StreamFormat& format, StreamBuffer& output, long value)
     {
         while (prec--)
         {
-            byte = value & 0xFF;
+            byte = static_cast<char>(value);
             output.append(byte);
             value >>= 8;
             width--;
@@ -70,7 +70,7 @@ printLong(const StreamFormat& format, StreamBuffer& output, long value)
         }
         while (prec--)
         {
-            output.append((value >> (8 * prec)) & 0xFF);
+            output.append(static_cast<char>(value >> (8 * prec)));
         }
     }
     return true;

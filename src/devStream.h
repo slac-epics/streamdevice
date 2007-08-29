@@ -23,11 +23,21 @@
 
 #define STREAM_MAJOR 2
 #define STREAM_MINOR 2
-extern const char StreamVersion [];
 
 #if defined(__vxworks) || defined(vxWorks)
 #include <vxWorks.h>
 #endif
+
+#ifndef OK
+#define OK 0
+#endif
+
+#ifndef ERROR
+#define ERROR -1
+#endif
+
+#define DO_NOT_CONVERT 2
+#define INIT_RUN (!interruptAccept)
 
 #include <epicsVersion.h>
 #if (EPICS_VERSION == 3 && EPICS_REVISION == 14)
@@ -49,24 +59,6 @@ extern "C" {
 }
 #endif
 
-#ifdef EPICS_3_14
-#include <epicsExport.h>
-#else
-#define epicsExportAddress(a,b) extern int avoid_compiler_warning
-#endif
-
-#ifndef OK
-#define OK 0
-#endif
-
-#ifndef ERROR
-#define ERROR -1
-#endif
-
-#define DO_NOT_CONVERT 2
-#define INIT_RUN (!interruptAccept)
-
-extern FILE* StreamDebugFile;
 
 typedef const struct format_s {
     unsigned char type;
@@ -76,6 +68,13 @@ typedef const struct format_s {
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+#ifdef _WIN32
+__declspec(dllimport)
+#endif
+extern FILE* StreamDebugFile;
+
+extern const char StreamVersion [];
 
 typedef long (*streamIoFunction) (dbCommon*, format_t*);
 
