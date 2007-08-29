@@ -87,7 +87,7 @@ printLong(const StreamFormat& fmt, StreamBuffer& output, long value)
         }
         output[firstbyte] |= bcd[5];
     }
-    return width;
+    return true;
 }
 
 int BCDConverter::

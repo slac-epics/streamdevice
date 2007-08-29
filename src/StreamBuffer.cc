@@ -24,8 +24,8 @@
 #include <stdarg.h>
 #include <stdlib.h>
 
-#if defined(__vxworks) || defined(vxWorks)
-// vxWorks has no vsnprintf
+#if defined(__vxworks) || defined(vxWorks) || defined(_WIN32) || defined(__rtems__)
+// These systems have no vsnprintf
 #include <epicsStdio.h>
 #define vsnprintf epicsVsnprintf
 #endif
@@ -63,7 +63,24 @@ grow(long minsize)
     if (minsize > 10000)
     {
         // crude trap against infinite grow
-        error ("StreamBuffer exploded (over 10000 chars). Exiting\n");
+        error ("StreamBuffer exploded growing from %ld to %ld chars. Exiting\n",
+            cap, minsize);
+        int i;
+        char c;
+        fprintf(stderr, "String contents (len=%ld):\n", len);
+        for (i = offs; i < len; i++)
+        {
+            c = buffer[i];
+            if ((c & 0x7f) < 0x20 || (c & 0x7f) == 0x7f)
+            {
+                fprintf(stderr, "<%02x>", c & 0xff);
+            }
+            else
+            {
+                fprintf(stderr, "%c", c);
+            }
+        }
+        fprintf(stderr, "\n");
         abort();
     }
     if (minsize < cap)
@@ -95,13 +112,14 @@ append(const void* s, long size)
 {
     if (size <= 0)
     {
-        // append negative bytes? let's delete some
+        // append negative number of bytes? let's delete some
+        if (size < -len) size = -len;
         memset (buffer+offs+len+size, 0, -size);
     }
     else
     {
         check(size);
-        memcpy(buffer+offs+len, static_cast<const char*>(s), size);
+        memcpy(buffer+offs+len, s, size);
     }
     len += size;
     return *this;
@@ -116,7 +134,7 @@ find(const void* m, long size, long start) const
         if (start < 0) start = 0;
     }
     if (start >= len-size+1) return -1; // find nothing after end
-    if (!m || size <= 0) return start; // find empty string
+    if (!m || size <= 0) return start; // find empty string at start
     const char* s = static_cast<const char*>(m);
     char* b = buffer+offs;
     char* p = b+start;
@@ -253,15 +271,17 @@ StreamBuffer StreamBuffer::expand(long start, long length) const
     start += offs;
     end += offs;
     long i;
+    char c;
     for (i = start; i < end; i++)
     {
-        if ((buffer[i] & 0x7f) < 0x20 || buffer[i] == 0x7f)
+        c = buffer[i];
+        if ((c & 0x7f) < 0x20 || (c & 0x7f) == 0x7f)
         {
-            result.printf("<%02x>", buffer[i] & 0xff);
+            result.printf("<%02x>", c & 0xff);
         }
         else
         {
-            result.append(buffer[i]);
+            result.append(c);
         }
     }
     return result;

@@ -79,7 +79,11 @@ printLong(const StreamFormat& fmt, StreamBuffer& output, long value)
 {
     long maxValue = fmt.info[0]; // number of enums
     const char* s = fmt.info+1;  // first enum string
-    if (value < 0 || value > maxValue) return false;
+    if (value < 0 || value > maxValue)
+    {
+        error("Value %li out of range [0...%li]\n", value, maxValue);        
+        return false;
+    }
     while (value--)
     {
         while(*s)

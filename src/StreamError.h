@@ -21,17 +21,20 @@
 #define StreamError_h
 
 #include <stdio.h>
+#include <stdarg.h>
 
 #ifndef __GNUC__
 #define __attribute__(x)
 #endif
 
 extern int streamDebug;
-extern FILE* StreamDebugFile;
-extern void (*StreamPrintTimestampFunction)(FILE* file);
+extern void (*StreamPrintTimestampFunction)(char* buffer, int size);
 
 void StreamError(const char* fmt, ...)
 __attribute__ ((format(printf,1,2)));
+
+void StreamVError(const char* fmt, va_list args)
+__attribute__ ((format(printf,1,0)));
 
 class StreamDebugClass
 {

@@ -1,9 +1,3 @@
-# Need calc
-CALC=/afs/slac/g/lcls/build/epics/modules/calc/calc-R2-6-1-LCLS-1
-
-# Need sscan
-SSCAN=/afs/slac/g/lcls/build/epics/modules/sscan/sscan-R2-5-2-LCLS-1
-
 # Need asyn
 ASYN=/afs/slac/g/lcls/build/epics/modules/asyn/asyn-R4-6
 

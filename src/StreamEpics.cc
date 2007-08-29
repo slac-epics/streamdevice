@@ -44,7 +44,7 @@ extern "C" {
 
 extern DBBASE *pdbbase;
 
-}
+} // extern "C"
 
 #else
 
@@ -54,6 +54,17 @@ extern DBBASE *pdbbase;
 #include <epicsTime.h>
 #include <registryFunction.h>
 #include <iocsh.h>
+
+#if EPICS_MODIFICATION<9
+extern "C" {
+// iocshCmd() is missing in iocsh.h (up to R3.14.8.2)
+// To build with win32-x86, you MUST fix iocsh.h.
+// Move the declaration below to iocsh.h and rebuild base.
+epicsShareFunc int epicsShareAPI iocshCmd(const char *command);
+}
+#endif
+
+#include <epicsExport.h>
 
 #endif
 
@@ -109,7 +120,7 @@ class Stream : protected StreamCore
 // StreamCore methods
     // void protocolStartHook(); // Nothing to do here?
     void protocolFinishHook(ProtocolResult);
-    void startTimer(unsigned short timeout);
+    void startTimer(unsigned long timeout);
     bool getFieldAddress(const char* fieldname,
         StreamBuffer& address);
     bool formatValue(const StreamFormat&,
@@ -150,8 +161,11 @@ public:
 
 
 // shell functions ///////////////////////////////////////////////////////
-
+#ifdef EPICS_3_14
+extern "C" {
 epicsExportAddress(int, streamDebug);
+}
+#endif
 
 #ifdef MEMGUARD
 static const iocshFuncDef memguardReportDef =
@@ -205,6 +219,10 @@ extern "C" long streamReload(char* recordname)
             {
                 printf("%s: Protocol reloaded\n", record->name);
             }
+            else
+            {
+                error("%s: Protocol reload failed\n", record->name);
+            }
         }
     }
     dbFinishEntry(&dbentry);
@@ -238,12 +256,14 @@ static void streamRegistrar ()
         (REGISTRYFUNCTION)streamReloadSub);
 }
 
+extern "C" {
 epicsExportRegistrar(streamRegistrar);
+}
 #endif // EPICS_3_14
 
 // driver support ////////////////////////////////////////////////////////
 
-struct {
+struct stream_drvsup {
     long number;
     long (*report)(int);
     DRVSUPFUN init;
@@ -253,20 +273,19 @@ struct {
     Stream::drvInit
 };
 
-epicsExportAddress(drvet, stream);
-
 #ifdef EPICS_3_14
-void streamEpicsPrintTimestamp(FILE* file)
+extern "C" {
+epicsExportAddress(drvet, stream);
+}
+
+void streamEpicsPrintTimestamp(char* buffer, int size)
 {
-    char buffer [40];
     epicsTime tm = epicsTime::getCurrent();
-    tm.strftime(buffer, 40, "%Y/%m/%d %H:%M:%S.%03f");
-    fprintf(file, "%s ", buffer);
+    tm.strftime(buffer, size, "%Y/%m/%d %H:%M:%S.%03f");
 }
 #else
-void streamEpicsPrintTimestamp(FILE* file)
+void streamEpicsPrintTimestamp(char* buffer, int size)
 {
-    char buffer [40];
     char* c;
     TS_STAMP tm;
     tsLocalTime (&tm);
@@ -275,7 +294,6 @@ void streamEpicsPrintTimestamp(FILE* file)
     if (c) {
         c[4] = 0;
     }
-    fprintf(file, "%s ", buffer);
 }
 #endif
 
@@ -432,7 +450,7 @@ long streamGetIointInfo(int cmd, dbCommon *record, IOSCANPVT *ppvt)
     if (cmd == 0)
     {
         debug("streamGetIointInfo: starting protocol\n");
-        /* SCAN has been set to "I/O Intr" */
+        // SCAN has been set to "I/O Intr"
         if (!pstream->startProtocol(Stream::StartAsync))
         {
             error("%s: Can't start \"I/O Intr\" protocol\n",
@@ -441,7 +459,7 @@ long streamGetIointInfo(int cmd, dbCommon *record, IOSCANPVT *ppvt)
     }
     else
     {
-        /* SCAN is no longer "I/O Intr" */
+        // SCAN is no longer "I/O Intr"
         pstream->finishProtocol(Stream::Abort);
     }
     return OK;
@@ -633,7 +651,7 @@ initRecord()
 #else
     semTake(initDone, WAIT_FOREVER);
 #endif
-    debug("Stream::initRecord %s: initDone.\n",
+    debug("Stream::initRecord %s: initDone\n",
         name());
 
     // init run has set status and convert
@@ -837,7 +855,7 @@ protocolFinishHook(ProtocolResult result)
         ((DEVSUPFUN)record->rset->process)(record);
         dbScanUnlock(record);
 
-        debug("Stream::protocolFinishHook(stream=%s,result=%d) done.\n",
+        debug("Stream::protocolFinishHook(stream=%s,result=%d) done\n",
             name(), result);
     }
     if (result != Abort && record->scan == SCAN_IO_EVENT)
@@ -854,9 +872,9 @@ protocolFinishHook(ProtocolResult result)
 }
 
 void Stream::
-startTimer(unsigned short timeout)
+startTimer(unsigned long timeout)
 {
-    debug("Stream::startTimer(stream=%s, timeout=%hu) = %f seconds\n",
+    debug("Stream::startTimer(stream=%s, timeout=%lu) = %f seconds\n",
         name(), timeout, timeout * 0.001);
 #ifdef EPICS_3_14
     timer->start(*this, timeout * 0.001);
@@ -888,7 +906,7 @@ getFieldAddress(const char* fieldname, StreamBuffer& address)
     return true;
 }
 
-static const short dbfMapping[] =
+static const unsigned char dbfMapping[] =
     {0, DBF_LONG, DBF_ENUM, DBF_DOUBLE, DBF_STRING};
 static const short typeSize[] =
     {0, sizeof(epicsInt32), sizeof(epicsUInt16),
@@ -900,11 +918,13 @@ formatValue(const StreamFormat& format, const void* fieldaddress)
     debug("Stream::formatValue(%s, format=%%%c, fieldaddr=%p\n",
         name(), format.conv, fieldaddress);
 
-// --  If SCAN is "I/O Intr" and record has not been processed,     --
-// --  do it now to get the latest value (only for output records?) --
+// --  TO DO: If SCAN is "I/O Intr" and record has not been processed,  --
+// --  do it now to get the latest value (only for output records?)     --
 
     if (fieldaddress)
     {
+        // Format like "%([record.]field)..." has requested to get value
+        // from field of this or other record.
         DBADDR* pdbaddr = (DBADDR*)fieldaddress;
         long i;
         long nelem = pdbaddr->no_elements;
@@ -913,7 +933,11 @@ formatValue(const StreamFormat& format, const void* fieldaddress)
         if (dbGet(pdbaddr, dbfMapping[format.type], buffer,
             NULL, &nelem, NULL) != 0)
         {
-            error("%s: dbGet() failed\n", name());
+            error("%s: dbGet(%s.%s, %s) failed\n",
+                name(),
+                pdbaddr->precord->name,
+                ((dbFldDes*)pdbaddr->pfldDes)->name,
+                pamapdbfType[dbfMapping[format.type]].strvalue);
             return false;
         }
         for (i = 0; i < nelem; i++)
@@ -939,10 +963,12 @@ formatValue(const StreamFormat& format, const void* fieldaddress)
                     if (!printValue(format, buffer+MAX_STRING_SIZE*i))
                         return false;
                     break;
+                case pseudo_format:
+                    error("%s: %%(FIELD) syntax not allowed with pseudo formats\n",
+                        name());
                 default:
-                    error("INTERNAL ERROR %s: Illegal format.type=%s\n",
-                        name(),
-                        StreamProtocolParser::formatTypeStr(format.type));
+                    error("INTERNAL ERROR %s: Illegal format.type=%d\n",
+                        name(), format.type);
                     return false;
             }
         }
@@ -970,21 +996,29 @@ bool Stream::
 matchValue(const StreamFormat& format, const void* fieldaddress)
 {
     // this function must increase consumedInput
+    // [I use goto and feel very ashamed for it.]
     long consumed;
+    long lval;
+    double dval;
+    char* buffer;
+    int status;
+    const char* putfunc;
+    
     if (fieldaddress)
     {
+        // Format like "%([record.]field)..." has requested to put value
+        // to field of this or other record.
         DBADDR* pdbaddr = (DBADDR*)fieldaddress;
         long nord;
         long nelem = pdbaddr->no_elements;
         size_t size = nelem * typeSize[format.type];
-        char* buffer = fieldBuffer.clear().reserve(size);
+        buffer = fieldBuffer.clear().reserve(size);
         for (nord = 0; nord < nelem; nord++)
         {
             switch (format.type)
             {
                 case long_format:
                 {
-                    long lval;
                     consumed = scanValue(format, lval);
                     if (consumed < 0) goto noMoreElements;
                     ((epicsInt32*)buffer)[nord] = lval;
@@ -992,15 +1026,13 @@ matchValue(const StreamFormat& format, const void* fieldaddress)
                 }
                 case enum_format:
                 {
-                    long lval;
                     consumed = scanValue(format, lval);
                     if (consumed < 0) goto noMoreElements;
-                    ((epicsUInt16*)buffer)[nord] = lval;
+                    ((epicsUInt16*)buffer)[nord] = (epicsUInt16)lval;
                     break;
                 }
                 case double_format:
                 {
-                    double dval;
                     consumed = scanValue(format, dval);
                     if (consumed < 0) goto noMoreElements;
                     ((epicsFloat64*)buffer)[nord] = dval;
@@ -1021,17 +1053,82 @@ matchValue(const StreamFormat& format, const void* fieldaddress)
             consumedInput += consumed;
         }
 noMoreElements:
-        if (!nord) return false;
-        if (dbPut(pdbaddr, dbfMapping[format.type],
-            fieldBuffer(), nord) != 0)
+        if (!nord)
+        {
+            // scan error: set other record to alarm status
+            if (pdbaddr->precord != record)
+            {
+                recGblSetSevr(pdbaddr->precord, CALC_ALARM, INVALID_ALARM);
+                if (!INIT_RUN)
+                {
+                    // process other record to send alarm monitor
+                    dbProcess(pdbaddr->precord);
+                }
+            }
+            return false;
+        }
+        if (pdbaddr->precord == record || INIT_RUN)
+        {
+            // write into own record, thus don't process it
+            // in @init we must not process other record
+            debug("Stream::matchValue(%s): dbPut(%s.%s,...)\n",
+                name(),
+                pdbaddr->precord->name,
+                ((dbFldDes*)pdbaddr->pfldDes)->name);
+            putfunc = "dbPut";
+            status = dbPut(pdbaddr, dbfMapping[format.type], fieldBuffer(), nord);
+            if (INIT_RUN && pdbaddr->precord != record)
+            {
+                // clean error status of other record in @init
+                pdbaddr->precord->udf = false;
+                pdbaddr->precord->sevr = NO_ALARM;
+                pdbaddr->precord->stat = NO_ALARM;
+            }
+        }
+        else
+        {
+            // write into other record, thus process it
+            debug("Stream::matchValue(%s): dbPutField(%s.%s,...)\n",
+                name(),
+                pdbaddr->precord->name,
+                ((dbFldDes*)pdbaddr->pfldDes)->name);
+            putfunc = "dbPutField";
+            status = dbPutField(pdbaddr, dbfMapping[format.type], fieldBuffer(), nord);
+        }
+        if (status != 0)
         {
             flags &= ~ScanTried;
-            error("%s: dbPut failed\n", name());
-            return false;
+            switch (format.type)
+            {
+                case long_format:
+                case enum_format:
+                    error("%s: %s(%s.%s, %s, %li) failed\n",
+                        putfunc, name(), pdbaddr->precord->name,
+                        ((dbFldDes*)pdbaddr->pfldDes)->name,
+                        pamapdbfType[dbfMapping[format.type]].strvalue,
+                        lval);
+                    return false;
+                case double_format:
+                    error("%s: %s(%s.%s, %s, %#g) failed\n",
+                        putfunc, name(), pdbaddr->precord->name,
+                        ((dbFldDes*)pdbaddr->pfldDes)->name,
+                        pamapdbfType[dbfMapping[format.type]].strvalue,
+                        dval);
+                    return false;
+                case string_format:
+                    error("%s: %s(%s.%s, %s, \"%s\") failed\n",
+                        putfunc, name(), pdbaddr->precord->name,
+                        ((dbFldDes*)pdbaddr->pfldDes)->name,
+                        pamapdbfType[dbfMapping[format.type]].strvalue,
+                        buffer);
+                    return false;
+                default:
+                    return false;
+            }
         }
         return true;
     }
-    // no fieldaddress
+    // no fieldaddress (the "normal" case)
     format_s fmt;
     fmt.type = dbfMapping[format.type];
     fmt.priv = &format;
@@ -1060,26 +1157,24 @@ noMoreElements:
 }
 
 #ifdef EPICS_3_14
-// There is no header file for this
-extern "C" int iocshCmd (const char *cmd);
 
-extern "C" void streamExecuteCommand(CALLBACK *pcallback)
+void streamExecuteCommand(CALLBACK *pcallback)
 {
     Stream* pstream = static_cast<Stream*>(pcallback->user);
     
     if (iocshCmd(pstream->outputLine()) != OK)
     {
-        pstream->execCallback(StreamBusInterface::ioFault);
+        pstream->execCallback(StreamIoFault);
     }
     else
     {
-        pstream->execCallback(StreamBusInterface::ioSuccess);
+        pstream->execCallback(StreamIoSuccess);
     }
 }
 #else
 extern "C" int execute (const char *cmd);
 
-extern "C" void streamExecuteCommand(CALLBACK *pcallback)
+void streamExecuteCommand(CALLBACK *pcallback)
 {
     Stream* pstream = static_cast<Stream*>(pcallback->user);
     

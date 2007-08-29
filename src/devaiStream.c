@@ -20,6 +20,7 @@
 
 #include <devStream.h>
 #include <aiRecord.h>
+#include <epicsExport.h>
 
 static long readData (dbCommon *record, format_t *format)
 {

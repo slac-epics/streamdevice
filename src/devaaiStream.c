@@ -18,10 +18,11 @@
 *                                                              *
 ***************************************************************/
 
-#include <devStream.h>
-#include <aaiRecord.h>
 #include <string.h>
 #include <stdlib.h>
+#include <devStream.h>
+#include <aaiRecord.h>
+#include <epicsExport.h>
 
 static long readData (dbCommon *record, format_t *format)
 {
@@ -45,7 +46,7 @@ static long readData (dbCommon *record, format_t *format)
                         ((double *)aai->bptr)[aai->nord] = dval;
                         break;
                     case DBF_FLOAT:
-                        ((float *)aai->bptr)[aai->nord] = dval;
+                        ((float *)aai->bptr)[aai->nord] = (float)dval;
                         break;
                     default:
                         errlogSevPrintf (errlogFatal,
@@ -68,7 +69,7 @@ static long readData (dbCommon *record, format_t *format)
                         ((double *)aai->bptr)[aai->nord] = lval;
                         break;
                     case DBF_FLOAT:
-                        ((float *)aai->bptr)[aai->nord] = lval;
+                        ((float *)aai->bptr)[aai->nord] = (float)lval;
                         break;
                     case DBF_LONG:
                     case DBF_ULONG:
@@ -77,11 +78,11 @@ static long readData (dbCommon *record, format_t *format)
                     case DBF_SHORT:
                     case DBF_USHORT:
                     case DBF_ENUM:
-                        ((short *)aai->bptr)[aai->nord] = lval;
+                        ((short *)aai->bptr)[aai->nord] = (short)lval;
                         break;
                     case DBF_CHAR:
                     case DBF_UCHAR:
-                        ((char *)aai->bptr)[aai->nord] = lval;
+                        ((char *)aai->bptr)[aai->nord] = (char)lval;
                         break;
                     default:
                         errlogSevPrintf (errlogFatal,

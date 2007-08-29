@@ -14,9 +14,17 @@
 #  Mod:
 #        dd-mmm-yyyy, First Lastname      (USERNAME)
 #          comment
+#        28-Aug-2007, Stephen Schuh       (schuhs)
+#          add streamdevice-R2-2-0-LCLS-1
 #
 #==============================================================
 #
+streamdevice-R2-2-0-LCLS-1: New version of streamdevice.  Consists of 
+	StreamDevice-2-2 from the Swiss Light Source with the following
+	patches applied: 20070803, 20070808, 20070814, 20070824, 20070827.
+	This module depends on asyn only.  (The previous version required
+	calc and sscan.)
+
 streamdevice-R2-1-patch200606213-LCLS-1: Initial release used in LCLS 
 	Injector and BC1.  No code changes from modules/streamdevice/Devl 
 	version or former epics/site version.  Source is 

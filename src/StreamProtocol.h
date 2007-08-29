@@ -24,9 +24,6 @@
 #include "StreamBuffer.h"
 #include <stdio.h>
 
-#define cr  '\r'
-#define lf  '\n'
-
 enum FormatType {NoFormat, ScanFormat, PrintFormat};
 
 class StreamProtocolParser
@@ -67,12 +64,11 @@ public:
 
         const StreamBuffer filename;
 
-        const StreamBuffer* getValue(const char* varname);
         bool getNumberVariable(const char* varname, unsigned long& value,
             unsigned long max = 0xFFFFFFFF);
         bool getEnumVariable(const char* varname, unsigned short& value,
             const char ** enumstrings);
-        bool getStringVariable(const char* varname,StreamBuffer& value);
+        bool getStringVariable(const char* varname,StreamBuffer& value, bool* defined = NULL);
         bool getCommands(const char* handlername, StreamBuffer& code, Client*);
         bool compileNumber(unsigned long& number, const char*& source,
             unsigned long max = 0xFFFFFFFF);
@@ -93,6 +89,8 @@ public:
         virtual bool getFieldAddress(const char* fieldname,
             StreamBuffer& address) = 0;
         virtual const char* name() = 0;
+    public:
+        virtual ~Client();
     };
 
 private:
@@ -128,7 +126,6 @@ public:
         const StreamBuffer& protocolAndParams);
     static void free();
     static const char* path;
-    static const char* formatTypeStr(int type);
     static const char* printString(StreamBuffer&, const char* string);
     void report();
 };

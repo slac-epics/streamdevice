@@ -18,7 +18,9 @@
 ***************************************************************/
 
 #include <devStream.h>
+#include <postfix.h>
 #include <calcoutRecord.h>
+#include <epicsExport.h>
 
 static long readData (dbCommon *record, format_t *format)
 {

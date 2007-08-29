@@ -25,6 +25,10 @@
 #include "StreamFormatConverter.h"
 #include "StreamError.h"
 
+const char* StreamFormatTypeStr[] = {
+    "none", "long", "enum", "double", "string", "pseudo"
+};
+
 class StreamProtocolParser::Protocol::Variable
 {
     friend class Protocol;
@@ -47,6 +51,12 @@ class StreamProtocolParser::Protocol::Variable
 StreamProtocolParser* StreamProtocolParser::parsers = NULL;
 const char* StreamProtocolParser::path = ".";
 static const char* specialChars = " ,;{}=()$'\"+-*/";
+
+// Client destructor
+StreamProtocolParser::Client::
+~Client()
+{
+}
 
 // Private constructor
 StreamProtocolParser::
@@ -74,13 +84,13 @@ StreamProtocolParser::
 void StreamProtocolParser::
 errorMsg(const char* fmt, ...)
 {
-    fprintf(stderr, "\033[31;1mStream protocol file '%s' line %d: ",
-        filename(), line);
+    char fmt2[200];
+    sprintf (fmt2, "'%s' line %d: %s",
+        filename(), line, fmt);
     va_list args;
     va_start(args, fmt);
-    vfprintf(stderr, fmt, args);
+    StreamVError(fmt2, args);
     va_end(args);
-    fprintf(stderr, "\033[0m");
 }
 
 void StreamProtocolParser::
@@ -321,7 +331,7 @@ parseProtocol(Protocol& protocol, StreamBuffer* commands)
         }
         if (op == '{') // protocol or handler definition
         {
-            token.truncate(-1-sizeof(int));
+            token.truncate(-1-(int)sizeof(int));
             if (token[0] == '@') // handler
             {
                 if (isHandlerContext(protocol, commands))
@@ -629,16 +639,6 @@ parseValue(StreamBuffer& buffer, bool lazy)
 // tools (static member functions)
 
 const char* StreamProtocolParser::
-formatTypeStr(int type)
-{
-    const char* str [] = {"none", "long", "double", "string", "pseudo"};
-    static char illegal[20];
-    if (type <= pseudo_format) return str[type];
-    sprintf(illegal, "illegal %d", type);
-    return illegal;
-}
-
-const char* StreamProtocolParser::
 printString(StreamBuffer& buffer, const char* s)
 {
     while (*s)
@@ -771,13 +771,13 @@ StreamProtocolParser::Protocol::
 void StreamProtocolParser::Protocol::
 errorMsg(int l, const char* fmt, ...)
 {
+    char fmt2[200];
+    sprintf (fmt2, "'%s' line %d: %s",
+        filename(), line, fmt);
     va_list args;
-    fprintf(stderr, "\033[31;1mStream protocol file '%s' line %d: ",
-        filename(), l);
     va_start(args, fmt);
-    vfprintf(stderr, fmt, args);
+    StreamVError(fmt2, args);
     va_end(args);
-    fprintf(stderr, "\033[0m");
 }
 
 void StreamProtocolParser::Protocol::
@@ -838,22 +838,6 @@ getVariable(const char* name)
     return NULL;
 }
 
-const StreamBuffer* StreamProtocolParser::Protocol::
-getValue(const char* varname)
-{
-    Variable* pV;
-
-    for (pV = variables; pV; pV = pV->next)
-    {
-        if (pV->name.equals(varname))
-        {
-            pV->used = true;
-            return &pV->value;
-        }
-    }
-    return NULL;
-}
-
 bool StreamProtocolParser::Protocol::
 getNumberVariable(const char* varname, unsigned long& value, unsigned long max)
 {
@@ -900,12 +884,14 @@ getEnumVariable(const char* varname, unsigned short& value, const char** enumstr
 }
 
 bool StreamProtocolParser::Protocol::
-getStringVariable(const char* varname, StreamBuffer& value)
+getStringVariable(const char* varname, StreamBuffer& value, bool* defined)
 {
-    const StreamBuffer* pvalue = getValue(varname);
-    if (!pvalue) return true;
-    value.clear();
+    const Variable* pvar = getVariable(varname);
+    if (!pvar) return true;
+    if (defined) *defined = true;
+    const StreamBuffer* pvalue = &pvar->value;
     const char* source = (*pvalue)();
+    value.clear();
     if (!compileString(value, source))
     {
         error("in string variable '%s' in protocol file '%s' line %d\n",
@@ -1046,7 +1032,7 @@ compileNumber(unsigned long& number, const char*& source, unsigned long max)
         {
             if(!replaceVariable(buffer, source)) return false;
             debug("buffer=%s\n", buffer.expand()());
-            buffer.truncate(-1-sizeof(int));
+            buffer.truncate(-1-(int)sizeof(int));
         }
         else
         {
@@ -1129,6 +1115,7 @@ compileString(StreamBuffer& buffer, const char*& source,
                 if (!compileFormat(formatbuffer, p, formatType, client))
                 {
                     p = buffer(pos);
+                    formatbuffer.clear();
                     printString(formatbuffer, p);
                     errorMsg(line, "in format string: \"%s\"\n",
                             formatbuffer());
@@ -1180,10 +1167,10 @@ compileString(StreamBuffer& buffer, const char*& source,
                     buffer.append(9);
                     break;
                 case 'n':
-                    buffer.append(lf);
+                    buffer.append('\n');
                     break;
                 case 'r':
-                    buffer.append(cr);
+                    buffer.append('\r');
                     break;
                 case 'e':
                     buffer.append(esc).append(esc);
@@ -1353,9 +1340,9 @@ compileString(StreamBuffer& buffer, const char*& source,
             {"bs",   8   }, 
             {"ht",   9   }, 
             {"tab",  9   }, 
-            {"lf",   lf  }, 
-            {"nl",   lf  }, 
-            {"cr",   cr  }, 
+            {"lf",   '\n'  }, 
+            {"nl",   '\n'  }, 
+            {"cr",   '\r'  }, 
             {"esc",  esc }, 
             {"del",  0x7f}
         };
@@ -1445,7 +1432,7 @@ compileFormat(StreamBuffer& buffer, const char*& formatstr,
             return false;
         }
         source = fieldnameEnd;
-        unsigned short length = fieldAddress.length();
+        unsigned short length = (unsigned short)fieldAddress.length();
         buffer.append(&length, sizeof(length));
         buffer.append(fieldAddress);
     }
@@ -1530,19 +1517,12 @@ compileFormat(StreamBuffer& buffer, const char*& formatstr,
             "Field width %ld out of range\n", val);
         return false;
     }
-    streamFormat.width = val;
+    streamFormat.width = (unsigned short)val;
     // look for prec
     streamFormat.prec = -1;
     if (*source == '.')
     {
         source++;
-        if (formatType != PrintFormat)
-        {
-            errorMsg(line,
-                "Use of precision field only allowed "
-                "in output formats\n");
-            return false;
-        }
         val = strtoul(source, &p, 10);
         if (p == source)
         {
@@ -1558,7 +1538,7 @@ compileFormat(StreamBuffer& buffer, const char*& formatstr,
                 "Precision %ld out of range\n", val);
             return false;
         }
-        streamFormat.prec = val;
+        streamFormat.prec = (short)val;
     }
     // look for converter
     streamFormat.conv = *source++;
@@ -1610,7 +1590,7 @@ compileFormat(StreamBuffer& buffer, const char*& formatstr,
         // terminate if necessary
         infoString.append(eos);
     }
-    streamFormat.infolen = infoString.length();
+    streamFormat.infolen = (unsigned short)infoString.length();
     // add formatstr for debug purpose
     buffer.append(formatstart, source-formatstart).append(eos);
 
@@ -1624,7 +1604,7 @@ compileFormat(StreamBuffer& buffer, const char*& formatstr,
     buffer.append(infoString);
 
     debug("StreamProtocolParser::Protocol::compileFormat: format.type=%s, infolen=%d\n",
-        formatTypeStr(streamFormat.type), streamFormat.infolen);
+        StreamFormatTypeStr[streamFormat.type], streamFormat.infolen);
     formatstr = source; // move pointer after parsed format
     return true;
 }

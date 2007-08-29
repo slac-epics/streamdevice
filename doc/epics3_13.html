@@ -18,6 +18,8 @@
 However, this requires some preparation, because EPICS 3.13 is missing
 some libraries and header files.
 Also <em>asynDriver</em></a> needs to be modified to compile with EPICS 3.13.
+Due to the limitations of EPICS 3.13, you can build streamDevice only for
+vxWorks systems.
 </p>
 <p>
 Of course, you need an installation of <a target="ex"
@@ -75,7 +77,7 @@ compatible to EPICS 3.13).
 Set <code>EPICS_BASE</code> to your EPICS 3.13 installation.
 </p>
 <p>
-Run <kbd>make</kbd>.
+Run <kbd>make</kbd> in the <kbd>configure</kbd> directory.
 </p>
 <p>
 Change to <kbd>../asyn/devGpib</kbd> and edit
@@ -123,7 +125,7 @@ Therefore, include <kbd>$(TOP)/config/RULES.munch</kbd>.
 <em>StreamDevice</em> installation.)
 </p>
 <p>
-Include the following lines in your application Makefile:
+Include the following lines in your <kbd>Makefile.Vx</kbd>:
 </p>
 <pre>
 LDLIBS += $(COMPAT_BIN)/compatLib
@@ -133,7 +135,7 @@ LDLIBS += $(INSTALL_BIN)/streamLib
 include $(TOP)/config/RULES.munch
 </pre>
 <p>
-Include the following lines in your xxxAppInclude.dbd file to use
+Include the following lines in your <kbd>xxxAppInclude.dbd</kbd> file to use
 <em>stream</em> and <em>asyn</em> (you also need a <kbd>base.dbd</kbd>):
 </p>
 <pre>
@@ -142,7 +144,7 @@ include "stream.dbd"
 include "asyn.dbd"
 </pre>
 <p>
-You can find an example application in the <code>streamApp</code>
+You can find an example application in the <kbd>streamApp</kbd>
 subdirectory.
 </p>
 
