@@ -19,6 +19,9 @@
 #
 #==============================================================
 #
+streamdevice-R2-2-lcls3: Same streamdevice as previous version.  Built
+	against base-R3-14-9-lcls1 and asyn-R4-7-1-lcls3
+
 streamdevice-R2-2-lcls2: Same streamdevice as previous version.  Built
 	against base-R3-14-8-2-lcls2 and asyn-R4-7-1-lcls2
 
