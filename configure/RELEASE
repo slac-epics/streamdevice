@@ -36,9 +36,16 @@ ASYN_MODULE_VERSION=asyn-R4-7-1-lcls3
 
 
 # ============================================================
-# ASYN Support
+# EPICS Module Support
 # ============================================================
 ASYN=$(EPICS_MODULES)/asyn/$(ASYN_MODULE_VERSION)
+
+
+# ============================================================
+# Perl-compatible regular expression support
+# ============================================================
+PCRE_INCLUDE=/usr/include/pcre
+PCRE_LIB=/usr/lib
 
 
 # =================================================================
