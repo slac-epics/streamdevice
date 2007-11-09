@@ -21,6 +21,9 @@
 #
 #==============================================================
 #
+streamdevice-R2-3-lcls2: New streamdevice version 2.3.  Includes support
+	for regular expressions.  Built against base 3.14.8.2
+
 streamdevice-R2-3-lcls1: New streamdevice version 2.3.  Includes support
 	for regular expressions.
 
