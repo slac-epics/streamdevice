@@ -34,17 +34,21 @@ BASE_MODULE_VERSION=base-R3-14-9-lcls1
 # IOC apps or other Support apps
 # =============================================================
 ASYN_MODULE_VERSION=asyn-R4-7-1-lcls5
+CALC_MODULE_VERSION=calc-R2-6-1-lcls3
+SSCAN_MODULE_VERSION=sscan-R2-5-2-lcls3
 
 # ============================================================
 # EPICS Module Support
 # ============================================================
 ASYN=$(EPICS_MODULES)/asyn/$(ASYN_MODULE_VERSION)
+CALC=$(EPICS_MODULES)/calc/$(CALC_MODULE_VERSION)
+SSCAN=$(EPICS_MODULES)/sscan/$(SSCAN_MODULE_VERSION)
 
 # ============================================================
 # Perl-compatible regular expression support
 # ============================================================
-PCRE_INCLUDE=/usr/include
-PCRE_LIB=/lib
+PCRE_INCLUDE=/usr/include/pcre
+PCRE_LIB=/usr/lib
 
 # =================================================================
 # Define EPICS_BASE
