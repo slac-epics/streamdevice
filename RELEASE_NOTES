@@ -21,6 +21,10 @@
 #
 #========================================================================
 #
+streamdevice-R2-3-lcls4: Fix Makefile so that we can build the embedded targets
+                         that use RTEMS without the PCRE support.
+                         Build against base-R3-14-9-lcls1 and rtems 4.7.1
+
 streamdevice-R2-3-lcls3: Remove R3.13 files. We are 3.14 only here.
                          Build against base-R3-14-9-lcls1 and rtems 4.7.1
 
