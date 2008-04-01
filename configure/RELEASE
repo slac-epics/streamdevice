@@ -40,12 +40,6 @@ ASYN_MODULE_VERSION=asyn-R4-7-1-lcls4
 # ============================================================
 ASYN=$(EPICS_MODULES)/asyn/$(ASYN_MODULE_VERSION)
 
-# ============================================================
-# Perl-compatible regular expression support
-# ============================================================
-PCRE_INCLUDE=/usr/include/pcre
-PCRE_LIB=/usr/lib
-
 # =================================================================
 # Define EPICS_BASE
 # EPICS_BASE usually appears last so other apps can override stuff:
