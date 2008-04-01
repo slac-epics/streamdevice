@@ -62,10 +62,11 @@ ifdef PCRE_INCLUDE
 RegexpConverter_INCLUDES += -I$(PCRE_INCLUDE)
 endif
 ifdef PCRE
-LIB_LIBS += pcre
+# With local PCRE package
+PROD_LIBS_Linux += pcre
 else
 ifneq ($(words $(PCRE_LIB) $(PCRE_INCLUDE)),0)
-LIB_SYS_LIBS += pcre
+PROD_SYS_LIBS_Linux += pcre
 SHRLIB_DEPLIB_DIRS += $(PCRE_LIB)
 endif
 endif
