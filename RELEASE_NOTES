@@ -21,6 +21,11 @@
 #
 #========================================================================
 #
+streamdevice-R2-3-lcls5: Fix an error in top-level Makefile that was causing
+			 streamdevice to build with CALC and SSCAN even if they
+			 weren't defined in configure/RELEASE.
+			 Build against base-R3-14-8-2-lcls2.
+
 streamdevice-R2-3-lcls4: Fix Makefile so that we can build the embedded targets
                          that use RTEMS without the PCRE support.
                          Build against base-R3-14-9-lcls1 and rtems 4.7.1

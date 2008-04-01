@@ -4,7 +4,10 @@ include $(TOP)/configure/CONFIG
 
 DIRS := $(DIRS) $(filter-out $(DIRS), configure)
 DIRS += src
-DIRS += srcSynApps
+ifneq ($(words $(CALC) $(SYNAPPS)), 0)   
+   # with synApps calc module (contains scalcout) 
+   DIRS += srcSynApps
+endif
 DIRS += streamApp
 
 #DIRS := $(DIRS) $(filter-out $(DIRS), $(wildcard *App))
