@@ -264,23 +264,28 @@ one character.
 <h2>9. Raw LONG Converter (<code>%r</code>)</h2>
 <p>
 The raw converter does not really "convert".
-A signed integer value is written or read in the internal
+A signed or unsigned integer value is written or read in the internal
 (usually two's complement) representation of the computer.
 The normal byte order is <em>big endian</em>, i.e. most significant byte
 first.
 With the <code>#</code> flag, the byte order is changed to <em>little
 endian</em>, i.e. least significant byte first.
+With the <code>0</code> flag, the value is unsigned, otherwise signed.
 </p>
 <p>
 In output, the <em>width</em> least significant bytes of the value
 are written.
 If <em>width</em> is larger than the size of a <code>long</code>,
-the value is sign extended.
+the value is sign extended or zero extended, depending on the
+<code>0</code> flag.
 </p>
 <p>
 In input, <em>width</em> bytes are read and put into the value.
-If <em>width</em> is longer than the size of a <code>long</code>, only
+If <em>width</em> is larger than the size of a <code>long</code>, only
 the least significant bytes are used.
+If <em>width</em> is smaller than the size of a <code>long</code>,
+the value is sign extended or zero extended, depending on the
+<code>0</code> flag.
 </p>
 
 <a name="bcd"></a>
