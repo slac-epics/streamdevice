@@ -24,3 +24,7 @@ ifdef T_A
  -include $(TOP)/configure/O.$(T_A)/CONFIG_APP_INCLUDE
 endif
 
+# StreamDevice documents are stored in $(TOP)/doc, which is defined in 
+# base as an install directory for documents.  To prevent $(TOP)/doc 
+# from being erased on make uninstall, redefine INSTALL_DOC here: 
+INSTALL_DOC =
