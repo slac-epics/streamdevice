@@ -462,11 +462,6 @@ lockRequest(unsigned long lockTimeout_ms)
         clientName(), lockTimeout_ms);
     asynStatus status;
     lockTimeout = lockTimeout_ms ? lockTimeout_ms*0.001 : -1.0;
-    if (!lockTimeout_ms)
-    {
-        if (!connectToAsynPort()) return false;
-    }
-    
     ioAction = Lock;
     status = pasynManager->queueRequest(pasynUser, priority(),
         lockTimeout);
@@ -519,10 +514,12 @@ connectToAsynPort()
 void AsynDriverInterface::
 lockHandler()
 {
+    int connected;
     debug("AsynDriverInterface::lockHandler(%s)\n",
         clientName());
     pasynManager->blockProcessCallback(pasynUser, false);
-    lockCallback(StreamIoSuccess);
+    connected = connectToAsynPort();
+    lockCallback(connected ? StreamIoSuccess : StreamIoFault);
 }
 
 // interface function: we don't need exclusive access any more

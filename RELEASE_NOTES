@@ -18,9 +18,19 @@
 #          add streamdevice-R2-2-0-LCLS-1
 #        18-Oct-2007, Stephen Schuh       (schuhs)
 #          add streamdevice-R2-3-lcls1
+#        02-Apr-2008, Stephen Schuh       (schuhs)
+#          add streamdevice-R2-3-lcls5
+#        03-Apr-2008, Stephen Schuh       (schuhs)
+#          add streamdevice-R2-3-lcls6
 #
 #========================================================================
 #
+streamdevice-R2-3-lcls6: Add five patches from D. Zimoch to fix various
+	problems and add features.  Patches are dated 11/7/2007, 1/9/2008,
+	2/5/2008 (2), and 2/20/2008.
+	Also modify configure/CONFIG so that doc subdirectory doesn't get
+	erased on make uninstall
+
 streamdevice-R2-3-lcls5: Various fixes to make streamdevice build with regular
 	expression support in linux and without it in RTEMS.  Previous versions
 	would build for both architectures but would not boot in RTEMS.
