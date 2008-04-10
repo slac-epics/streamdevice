@@ -33,7 +33,7 @@ BASE_MODULE_VERSION=base-R3-14-8-2-lcls2
 # Define the version of modules needed by
 # IOC apps or other Support apps
 # =============================================================
-ASYN_MODULE_VERSION=asyn-R4-7-1-lcls2
+ASYN_MODULE_VERSION=asyn-R4-9-lcls1
 
 # ============================================================
 # EPICS Module Support
