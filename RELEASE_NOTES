@@ -23,10 +23,13 @@
 #        03-Apr-2008, Stephen Schuh       (schuhs)
 #          add streamdevice-R2-3-lcls6
 #        10-Apr-2008, Stephen Schuh       (schuhs)
-#          add streamdevice-R2-3-lcls7
+#          add streamdevice-R2-3-lcls7 and streamdevice-R2-3-lcls8
 #
 #========================================================================
 #
+streamdevice-R2-3-lcls8: Build against asyn-R4-9-lcls2 and 
+	base-R3-14-9-lcls1
+
 streamdevice-R2-3-lcls7: Build against asyn-R4-9-lcls1 and 
 	base-R3-14-8-2-lcls2
 
