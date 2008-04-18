@@ -24,6 +24,8 @@
 #          add streamdevice-R2-3-lcls6
 #        10-Apr-2008, Stephen Schuh       (schuhs)
 #          add streamdevice-R2-3-lcls7 and streamdevice-R2-3-lcls8
+#        18-Apr-2008, Stephen Schuh       (schuhs)
+#          modify streamdevice-R2-3-lcls6, -lcls7, and -lcls8
 #
 #========================================================================
 #
@@ -36,6 +38,7 @@ streamdevice-R2-3-lcls7: Build against asyn-R4-9-lcls1 and
 streamdevice-R2-3-lcls6: Add five patches from D. Zimoch to fix various
 	problems and add features.  Patches are dated 11/7/2007, 1/9/2008,
 	2/5/2008 (2), and 2/20/2008.
+	Add patch received from D. Zimoch by email on 4/18/2008.
 	Also modify configure/CONFIG so that doc subdirectory doesn't get
 	erased on make uninstall
 
