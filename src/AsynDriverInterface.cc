@@ -458,12 +458,22 @@ connectToBus(const char* busname, int addr)
 bool AsynDriverInterface::
 lockRequest(unsigned long lockTimeout_ms)
 {
+    int connected;
+    asynStatus status;
+    
     debug("AsynDriverInterface::lockRequest(%s, %ld msec)\n",
         clientName(), lockTimeout_ms);
-    asynStatus status;
     lockTimeout = lockTimeout_ms ? lockTimeout_ms*0.001 : -1.0;
     ioAction = Lock;
-    status = pasynManager->queueRequest(pasynUser, priority(),
+    status = pasynManager->isConnected(pasynUser, &connected);
+    if (status != asynSuccess)
+    {
+        error("%s: pasynManager->isConnected() failed: %s\n",
+            clientName(), pasynUser->errorMessage);
+        return false;
+    }
+    status = pasynManager->queueRequest(pasynUser,
+        connected ? priority() : asynQueuePriorityConnect,
         lockTimeout);
     if (status != asynSuccess)
     {
@@ -507,6 +517,12 @@ connectToAsynPort()
             return false;
         }
     }
+//  We probably should set REN=1 prior to sending but this
+//  seems to hang up the device every other time.
+//     if (pasynGpib)
+//     {
+//         pasynGpib->ren(pvtGpib, pasynUser, 1);
+//     }
     return true;
 }
 
@@ -1255,6 +1271,12 @@ finish()
         clientName());
     cancelTimer();
     ioAction = None;
+//     if (pasynGpib)
+//     {
+//         // Release GPIB device the the end of the protocol
+//         // to re-enable local buttons.
+//         pasynGpib->ren(pvtGpib, pasynUser, 0);
+//     }
     debug("AsynDriverInterface::finish(%s) done\n",
         clientName());
 }
@@ -1265,6 +1287,8 @@ void handleRequest(asynUser* pasynUser)
 {
     AsynDriverInterface* interface =
         static_cast<AsynDriverInterface*>(pasynUser->userPvt);
+    debug("AsynDriverInterface::handleRequest(%s)\n",
+        interface->clientName());
     switch (interface->ioAction)
     {
         case None:
@@ -1299,6 +1323,8 @@ void handleTimeout(asynUser* pasynUser)
 {
     AsynDriverInterface* interface =
         static_cast<AsynDriverInterface*>(pasynUser->userPvt);
+    debug("AsynDriverInterface::handleTimeout(%s)\n",
+        interface->clientName());
     switch (interface->ioAction)
     {
         case Lock:
