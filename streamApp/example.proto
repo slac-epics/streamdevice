@@ -4,6 +4,10 @@ Terminator = CR LF;
 ReplyTimeout = 10000; # 10 sec is very long, for keyboard input
 ReadTimeout = 1000;   # also long for keyboard input
 
+binary {
+    out "%B\x00\xff";
+}
+
 # note the field access
 ai { 
     out "%(NAME)s [int] ? ";
