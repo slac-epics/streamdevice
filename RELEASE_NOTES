@@ -29,6 +29,10 @@
 #
 #========================================================================
 #
+
+StreamDevice-2-4: Just merged in from D. Zimoch
+Check Author's web site for details:
+
 streamdevice-R2-3-lcls8: Build against asyn-R4-9-lcls2 and 
 	base-R3-14-9-lcls1
 
