@@ -21,19 +21,39 @@
 #include "StreamFormatConverter.h"
 #include "StreamError.h"
 
-
-// Let's use epicsEndian.h
-#include "epicsEndian.h"
-
-
-#ifndef EPICS_FLOAT_WORD_ORDER
-#error define EPICS_FLOAT_WORD_ORDER as EPICS_ENDIAN_LITTLE or EPICS_ENDIAN_BIG 
+#if defined(__vxworks) || defined(vxWorks) 
+#include <vxWorks.h>
+#define __BYTE_ORDER _BYTE_ORDER 
+#define __LITTLE_ENDIAN _LITTLE_ENDIAN
+#define __BIG_ENDIAN _BIG_ENDIAN 
+#elif defined(_WIN32)
+// Assume that win32 is always little endian
+#define __LITTLE_ENDIAN 1234
+#define __BIG_ENDIAN 4321
+#define __BYTE_ORDER __LITTLE_ENDIAN
+#else
+// Let's hope all other architectures have sys/param.h
+#include <sys/param.h>
 #endif
 
-#if (EPICS_FLOAT_WORD_ORDER == EPICS_ENDIAN_LITTLE || EPICS_FLOAT_WORD_ORDER == EPICS_ENDIAN_BIG)
+// Some architectures don't define __BYTE_ORDER but
+// define either _LITTLE_ENDIAN or _BIG_ENDIAN
+#ifndef __BYTE_ORDER
+#define __LITTLE_ENDIAN 1234
+#define __BIG_ENDIAN 4321
+#if defined(_BIG_ENDIAN) && !defined(_LITTLE_ENDIAN)
+#define __BYTE_ORDER __BIG_ENDIAN
+#endif
+#if !defined(_BIG_ENDIAN) && defined(_LITTLE_ENDIAN)
+#define __BYTE_ORDER __LITTLE_ENDIAN
+#endif
+#endif
 
+#ifndef __BYTE_ORDER
+#error define __BYTE_ORDER as __LITTLE_ENDIAN or __BIG_ENDIAN
+#endif
 
-
+#if (__BYTE_ORDER == __LITTLE_ENDIAN || __BYTE_ORDER == __BIG_ENDIAN)
 
 // Raw Float Converter %R
 
@@ -75,7 +95,7 @@ printDouble(const StreamFormat& format, StreamBuffer& output, double value)
     else 
         buffer.dval = value;
 
-#if (EPICS_FLOAT_WORD_ORDER == EPICS_ENDIAN_BIG) 
+#if (__BYTE_ORDER == __BIG_ENDIAN)
     bool swap = format.flags & alt_flag;
 #else
     bool swap = !(format.flags & alt_flag);
@@ -117,7 +137,7 @@ scanDouble(const StreamFormat& format, const char* input, double& value)
         return(nbOfBytes); // just skip input
     }
     
-#if (EPICS_FLOAT_WORD_ORDER == EPICS_ENDIAN_BIG) 
+#if (__BYTE_ORDER == __BIG_ENDIAN)
     bool swap = format.flags & alt_flag;
 #else
     bool swap = !(format.flags & alt_flag);
