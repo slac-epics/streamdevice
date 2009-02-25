@@ -30,8 +30,25 @@
 #========================================================================
 #
 
-StreamDevice-2-4: Just merged in from D. Zimoch
-Check Author's web site for details:
+streamdevice-R2-4-lcls1:
+Built against base 3.14 and also rtems 4.9.1
+StreamDevice-2-4 plus patches
+    StreamDevice-2-4-patch20081002
+    StreamDevice-2-4-patch20081007
+
+Fixed bugs
+
+    * @init handler does not work for vxi11 ports
+    * Parser bug in %B format
+    * Alignment bug in StreamBuffer::reserve()
+    * Bug in StreamBuffer::replace(0,n,xxx,0)
+    * First bit lost when reading %b or %B format
+    * Skipped formats at end of input fail on vxWorks
+    * Bug in StreamBuffer::find() with 1 char strings
+    * Signed/unsigned conversion on 64 bit machines
+    * Stack overflow in "I/O Intr" when input consists of many lines
+    * Data loss in "I/O Intr" when input > 600 bytes
+
 
 streamdevice-R2-3-lcls8: Build against asyn-R4-9-lcls2 and 
 	base-R3-14-9-lcls1

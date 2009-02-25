@@ -1,4 +1,4 @@
-TOP=../..
+TOP=..
 
 include $(TOP)/configure/CONFIG
 
@@ -14,7 +14,7 @@ SRCS += $(LIBRARY_DEFAULT)_registerRecordDeviceDriver.cpp
 endif 
 SRCS += $(SYNAPPS_RECORDS:%=dev%Stream.c)
 
-LIB_LIBS += stream dbIoc registryIoc iocsh
+LIB_LIBS += stream dbIoc registryIoc 
 
 include $(TOP)/configure/RULES
 
