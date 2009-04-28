@@ -12,8 +12,8 @@
 #  Rev:  dd-mmm-yyyy, Reviewer's Name    (USERNAME)
 #--------------------------------------------------------------
 #  Mod:
-#        dd-mmm-yyyy, First Lastname      (USERNAME)
-#          comment
+#        27-Apr-2009, K. Luchini         (luchini)
+#          add streamdevice-R2-4-lcls1
 #        28-Aug-2007, Stephen Schuh       (schuhs)
 #          add streamdevice-R2-2-0-LCLS-1
 #        18-Oct-2007, Stephen Schuh       (schuhs)
@@ -29,12 +29,14 @@
 #
 #========================================================================
 #
-
 streamdevice-R2-4-lcls1:
-Built against base 3.14 and also rtems 4.9.1
-StreamDevice-2-4 plus patches
-    StreamDevice-2-4-patch20081002
-    StreamDevice-2-4-patch20081007
+      Build with base-R3.14.8.2 and rtems 4.9.1
+
+streamdevice-R2-2-0-lcls-1:
+      Built against base 3.14 and also rtems 4.9.1
+      StreamDevice-2-4 plus patches
+      StreamDevice-2-4-patch20081002
+      StreamDevice-2-4-patch20081007
 
 Fixed bugs
 
