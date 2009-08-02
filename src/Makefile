@@ -18,7 +18,7 @@
 #                                                              #
 ################################################################
 
-TOP=../..
+TOP=..
 
 # Look if we have EPICS R3.13 or R3.14
 ifeq ($(wildcard $(TOP)/configure),)
@@ -70,7 +70,7 @@ SHRLIB_DEPLIB_DIRS += $(PCRE_LIB)
 endif
 endif
 
-LIB_LIBS += Com dbIoc dbStaticIoc registryIoc iocsh
+LIB_LIBS += $(EPICS_BASE_IOC_LIBS)
 
 ifeq ($(USE_MEMGUARD),YES)
 # memguard looks for memory leaks (gcc only)
@@ -108,7 +108,6 @@ $(COMMON_DIR)/$(LIBRARY_DEFAULT).dbd: ../CONFIG_STREAM
 	done > $@
 	@echo "driver(stream)" >> $@
 	@echo "variable(streamDebug, int)" >> $@
-	@echo "variable(showAsyncErrors, int)" >> $@
 	@echo "registrar(streamRegistrar)" >> $@
 
 endif
