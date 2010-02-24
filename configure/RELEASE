@@ -26,13 +26,13 @@ EPICS_MODULES=$(EPICS_SITE_TOP)/modules
 # ==============================================================
 # Define the version of EPICS BASE that you will use
 # =============================================================
-BASE_MODULE_VERSION=base-R3-14-8-2-lcls3
+BASE_MODULE_VERSION=base-R3-14-8-2-lcls5
 
 # =============================================================
 # Define the version of modules needed by
 # IOC apps or other Support apps
 # =============================================================
-ASYN_MODULE_VERSION=asyn-R4-9-lcls3
+ASYN_MODULE_VERSION=asyn-R4-9-lcls4
 
 # ============================================================
 # EPICS Module Support

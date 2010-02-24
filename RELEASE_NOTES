@@ -12,6 +12,8 @@
 #  Rev:  dd-mmm-yyyy, Reviewer's Name    (USERNAME)
 #--------------------------------------------------------------
 #  Mod:
+#        22-Feb-2010, K. Luchini         (luchini)
+#          add streamdevice-R2-4-lcls2
 #        27-Apr-2009, K. Luchini         (luchini)
 #          add streamdevice-R2-4-lcls1
 #        28-Aug-2007, Stephen Schuh       (schuhs)
@@ -29,6 +31,9 @@
 #
 #========================================================================
 #
+streamdevice-R2-4-lcls2:
+      Build with base-R3.14.8.2 and rtems 4.9.3
+
 streamdevice-R2-4-lcls1:
       Build with base-R3.14.8.2 and rtems 4.9.1
 
