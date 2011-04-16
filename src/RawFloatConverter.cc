@@ -36,6 +36,19 @@
 #include <sys/param.h>
 #endif
 
+// Some architectures don't define __BYTE_ORDER but
+// define either _LITTLE_ENDIAN or _BIG_ENDIAN
+#ifndef __BYTE_ORDER
+#define __LITTLE_ENDIAN 1234
+#define __BIG_ENDIAN 4321
+#if defined(_BIG_ENDIAN) && !defined(_LITTLE_ENDIAN)
+#define __BYTE_ORDER __BIG_ENDIAN
+#endif
+#if !defined(_BIG_ENDIAN) && defined(_LITTLE_ENDIAN)
+#define __BYTE_ORDER __LITTLE_ENDIAN
+#endif
+#endif
+
 #ifndef __BYTE_ORDER
 #error define __BYTE_ORDER as __LITTLE_ENDIAN or __BIG_ENDIAN
 #endif
