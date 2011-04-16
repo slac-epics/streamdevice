@@ -112,7 +112,7 @@ static void copyFormatString(StreamBuffer& info, const char* source)
     const char* p = source - 1;
     while (*p != '%' && *p != ')') p--;
     info.append('%');
-    while (++p != source-1) info.append(*p);
+    while (++p != source-1) if (*p != '?') info.append(*p);
 }
 
 // Standard Long Converter for 'diouxX'
