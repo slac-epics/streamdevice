@@ -66,7 +66,9 @@ CPPFLAGS += -DDEBUGFILE=StreamDebug.log
 
 include $(TOP)/configure/RULES
 
-clean realclean::
+clean:: myclean
+
+myclean:
 	rm -f core* streamApp streamApp.exe* StreamDebug.log
 
 build: link
