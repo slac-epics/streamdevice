@@ -1,4 +1,4 @@
-TOP=../..
+TOP=..
 
 # Look if we have EPICS R3.13 or R3.14
 ifeq ($(wildcard $(TOP)/configure),)
@@ -67,9 +67,10 @@ CPPFLAGS += -DDEBUGFILE=StreamDebug.log
 include $(TOP)/configure/RULES
 
 clean:: myclean
+realclean:: myclean
 
 myclean:
-	rm -f core* streamApp streamApp.exe* StreamDebug.log
+	rm -f core* streamApp$(EXE) *.o *.obj StreamDebug.log
 
 build: link
 

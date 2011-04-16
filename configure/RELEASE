@@ -1,0 +1,36 @@
+# RELEASE
+# Defines location of external products
+include $(TOP)/RELEASE_SITE
+
+# ===============================================================
+# Define the location and version of EPICS base
+# ===============================================================
+BASE_MODULE_VERSION=R3.14.9-0.3.0
+EPICS_BASE=$(EPICS_SITE_TOP)/base/$(BASE_MODULE_VERSION)
+
+# ===============================================================
+# Define the version(s) of any other needed modules 
+# ===============================================================
+ASYN_MODULE_VERSION=R4.10.1-1.0.0
+CALC_MODULE_VERSION=R2.6.1-1.0.0
+SSCAN_MODULE_VERSION=R2.5.2.3-1.0.0
+GENSUB_MODULE_VERSION=R1.6.1.2-1.0.0
+
+
+# ============================================================
+# External Support module path definitions
+#
+# If any of these macros expand to a path which
+# contains an "include" directory, that directory will be
+# included in the compiler include path.
+#
+# If any of these macros expand to a path which
+# contains a "lib/<arch>" directory, that directory will be
+# included in the compiler link path for that architecture.
+#
+# If your build fails, look for these paths in your build output
+# ============================================================
+ASYN=$(EPICS_MODULES)/asyn/$(ASYN_MODULE_VERSION)
+CALC=$(EPICS_MODULES)/calc/$(CALC_MODULE_VERSION)
+SSCAN=$(EPICS_MODULES)/sscan/$(SSCAN_MODULE_VERSION)
+GENSUB=$(EPICS_MODULES)/genSub/$(GENSUB_MODULE_VERSION)

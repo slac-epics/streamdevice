@@ -32,6 +32,38 @@ typedef unsigned char uchar;
 
 typedef ulong (*checksumFunc)(const uchar* data, ulong len, ulong init);
 
+static ulong sum_cryo(const uchar* data, ulong len, ulong sum)
+{
+   //calculate the mod 256 of the character sum
+    while (len--)
+    {
+        sum += *data++;
+    }
+
+   //now that the characters are added XOR bits
+   bool D0, D1, D6, D7;
+   //get the bit values of the sum
+   D0=sum&0x01; //and the sum with the zero bit
+   D1=sum&0x02; //and the sum with the first bit
+   D6=sum&0x40; //and the sum with the sixth bit
+   D7=sum&0x80; //and the sum with the seventh bit
+
+   //calculate XORs to strip bits 6&7
+   D1=D1^D7; //D1 XOR D7
+   D0=D0^D6; //D0 XOR D6
+
+   //strip out old bits D0-D1, D6-D7
+   sum&=0x3C; //and the sum with 0x3C
+
+   //replace bits D0-D1 with the results
+   sum|=D0; //OR in the resultant zero bit
+   sum|=D1*0x02; //OR in the resultant one bit
+   //now add the '0' character to the result
+   //so the final outcome is a character from '0' to '??'
+   sum+='0';
+   return sum;
+}
+
 static ulong sum(const uchar* data, ulong len, ulong sum)
 {
     while (len--)
@@ -492,7 +524,8 @@ static checksum checksumMap[] =
     {"crc32r",  crc_0x04C11DB7_r, 0xFFFFFFFF, 0xFFFFFFFF, 4}, // 0xCBF43926
     {"jamcrc",  crc_0x04C11DB7_r, 0xFFFFFFFF, 0x00000000, 4}, // 0x340BC6D9
     {"adler32", adler32,          0x00000001, 0x00000000, 4}, // 0x091E01DE
-    {"hexsum8", hexsum,           0x00,       0x00,       1}  // 0x2D
+    {"hexsum8", hexsum,           0x00,       0x00,       1}, // 0x2D
+    {"cryo",    sum_cryo,         0x00,       0x00,       1}  // 0x2D
 };
 
 static ulong mask[5] = {0, 0xFF, 0xFFFF, 0xFFFFFF, 0xFFFFFFFF};
