@@ -20,14 +20,6 @@
 
 TOP=..
 
-# Look if we have EPICS R3.13 or R3.14
-ifeq ($(wildcard $(TOP)/configure),)
-# EPICS R3.13
-include $(TOP)/config/CONFIG_APP
-# The real work is in Makefile.Vx
-include $(TOP)/config/RULES_ARCHS
-else
-
 # EPICS R3.14
 include $(TOP)/configure/CONFIG
 
@@ -110,4 +102,3 @@ $(COMMON_DIR)/$(LIBRARY_DEFAULT).dbd: ../CONFIG_STREAM
 	@echo "variable(streamDebug, int)" >> $@
 	@echo "registrar(streamRegistrar)" >> $@
 
-endif
