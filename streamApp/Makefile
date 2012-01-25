@@ -49,11 +49,21 @@ streamApp_DBD += calcSupport.dbd
 streamApp_DBD += streamSynApps.dbd
 PROD_LIBS += calc
 # older calc versions require sscan
-#PROD_LIBS += sscan
+PROD_LIBS += sscan
 PROD_LIBS_DEFAULT += streamSynApps
 endif
 
 streamApp_DBD += stream.dbd
+
+# Disable Regexp for RTEMS-beatnik as pcre lib not avail
+ifneq '$(T_A)' 'RTEMS-beatnik'
+PCRE_INCLUDE=/usr/include
+ifeq '$(EPICS_HOST_ARCH)' 'linux-x86_64'
+PCRE_LIB=/usr/lib64
+else
+PCRE_LIB=/usr/lib
+endif
+endif
 
 ifdef PCRE
 LIB_LIBS += pcre
@@ -73,8 +83,8 @@ CPPFLAGS += -DDEBUGFILE=StreamDebug.log
 
 include $(TOP)/configure/RULES
 
-clean:: myclean
-realclean:: myclean
+clean: myclean
+realclean: myclean
 
 myclean:
 	$(RM) core* StreamDebug.log
