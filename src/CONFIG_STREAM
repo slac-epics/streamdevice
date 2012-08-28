@@ -13,6 +13,7 @@ RECORDS += longout longin
 RECORDS += stringout stringin
 RECORDS += waveform
 RECORDS += calcout
+# Not till 3.14.12
 #RECORDS += aai aao
 
 # Do you have synApps and want support for scalcout?
@@ -22,6 +23,7 @@ RECORDS += calcout
 # you have to build the 'sscan' and 'genSub'
 # modules before building 'calc'.
 # See doc/scalcout.html for a required fix in scalcout.
+
 SYNAPPS_RECORDS += scalcout
 
 # You may add more bus interfaces
@@ -29,7 +31,9 @@ SYNAPPS_RECORDS += scalcout
 # $(BUS)Interface.cc
 # asynDriver interface is added automatically
 # if ASYN is defined in your RELEASE file.
-# BUSSES += Debug
+
+BUSSES += Debug
+BUSSES += Dummy
 
 # You may add more format converters
 # This requires the naming convention
@@ -42,10 +46,7 @@ FORMATS += RawFloat
 FORMATS += Binary
 FORMATS += Checksum
 FORMATS += MantissaExponent
-
-# Disable Regexp for RTEMS-beatnik as
-# pcre lib not avail for RTEMS.  bhill 5/22/11
-ifneq '$(T_A)' 'RTEMS-beatnik'
+FORMATS += Timestamp
 
 # Want Perl regular expression matching?
 # If PCRE is installed at the same location for all
@@ -65,19 +66,12 @@ ifneq ($(words $(PCRE) $(PCRE_LIB) $(PCRE_INCLUDE)),0)
 FORMATS += Regexp
 endif
 
-# end of ifneq '$(T_A)' 'RTEMS-beatnik'
-endif
-
 # Want a loadable module? 
 # For Tornado 2.0.2, a fix is needed in the
 # registerRecordDeviceDriver.pl script in base:
 # at the end replace the line "IoccrfReg iocshReg;"
 # by "static IoccrfReg iocshReg;"
 # LOADABLE_MODULE = YES
-
-# Want to add some memory tracing
-# to find memory leaks?
-# USE_MEMGUARD = YES
 
 # Sources of Stream Kernel
 # Do not modify
