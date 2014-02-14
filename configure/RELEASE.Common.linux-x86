@@ -1,6 +1,6 @@
 # ============================================================
 # Perl-compatible regular expression support
 # ============================================================
-PCRE_INCLUDE=/usr/include/pcre
+PCRE_INCLUDE=/usr/include
 PCRE_LIB=/usr/lib
 

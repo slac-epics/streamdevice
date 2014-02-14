@@ -59,16 +59,6 @@ FORMATS += Timestamp
 # PCRE_INCLUDE=<location of the pcre.h file>
 # PCRE_LIB=<location of the PCRE library>
 
-# Disable Regexp for RTEMS-beatnik as pcre lib not avail
-ifneq '$(T_A)' 'RTEMS-beatnik'
-PCRE_INCLUDE=/usr/include
-ifeq '$(EPICS_HOST_ARCH)' 'linux-x86_64'
-PCRE_LIB=/usr/lib64
-else
-PCRE_LIB=/usr/lib
-endif
-endif
-
 ifneq ($(words $(PCRE) $(PCRE_LIB) $(PCRE_INCLUDE)),0)
 FORMATS += Regexp
 endif
