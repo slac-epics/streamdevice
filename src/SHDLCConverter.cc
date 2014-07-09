@@ -193,6 +193,7 @@ int SHDLCConverter::
 scanString(const StreamFormat& format, const char* input,
     char* value, size_t maxlen)
 {
+    return true;
 }
 
 int SHDLCConverter::
@@ -201,7 +202,7 @@ scanLong(const StreamFormat& format, const char* input,
 {
     // Data types to hold up to max. 64 bit (8 byte) longs
     int index=0, bytesconsumed=0, datalen, i;
-    unsigned char inByte, checksum=0, dataarray[8];
+    unsigned char inByte, checksum=0;
     unsigned long long valuetemp=0;
 
     // BYTE 0: Check for presence of delimiter
@@ -278,7 +279,7 @@ scanLong(const StreamFormat& format, const char* input,
     inByte = unStuffAndInc(input, index, bytesconsumed);
 
     // Check CHECKSUM LSbyte against computed checksum
-    if(inByte != ~(checksum & 0xFF))
+    if(inByte != (unsigned char)(~(checksum & 0xFF)))
     {
         error("SHDLC ERROR: CHECKSUM byte, calculated %#02X,\
                 received %#02X\n", inByte, ~(checksum & 0xFF));
@@ -314,7 +315,7 @@ scanLong(const StreamFormat& format, const char* input,
                 value = (signed long)(valuetemp & 0xFFFFFFFF);
                 break;
             case 4:
-                value = (signed long long)(valuetemp & 0xFFFFFFFFFFFFFFFF);
+                value = (signed long long)(valuetemp);
                 break;
             default:
                 value = 0;
@@ -338,7 +339,7 @@ scanLong(const StreamFormat& format, const char* input,
                 value = (valuetemp & 0xFFFFFFFF);
                 break;
             case 4:
-                value = (valuetemp & 0xFFFFFFFFFFFFFFFF);
+                value = (valuetemp);
                 break;
             default:
                 value = 0;
