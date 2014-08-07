@@ -147,6 +147,7 @@ protected:
     unsigned long readTimeout;
     unsigned long pollPeriod;
     unsigned long maxInput;
+    unsigned long peekSize;
     bool inTerminatorDefined;
     bool outTerminatorDefined;
     StreamBuffer inTerminator;
@@ -202,6 +203,10 @@ protected:
     void disconnectCallback(StreamIoStatus status);
     const char* getInTerminator(size_t& length);
     const char* getOutTerminator(size_t& length);
+    unsigned long getPeekSize()
+	{
+		return peekSize;
+	}
 
 // virtual methods
     virtual void protocolStartHook() {}

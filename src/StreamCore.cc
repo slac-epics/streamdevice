@@ -97,6 +97,7 @@ printProtocol()
     printf("  writeTimeout  = %ld; # ms\n", writeTimeout);
     printf("  pollPeriod    = %ld; # ms\n", pollPeriod);
     printf("  maxInput      = %ld; # bytes\n", maxInput);
+    printf("  peekSize      = %ld; # bytes\n", peekSize);
     StreamProtocolParser::printString(buffer.clear(), inTerminator());
     printf("  inTerminator  = \"%s\";\n", buffer());
         StreamProtocolParser::printString(buffer.clear(), outTerminator());
@@ -239,6 +240,7 @@ compile(StreamProtocolParser::Protocol* protocol)
     replyTimeout = 1000;
     writeTimeout = 100;
     maxInput = 0;
+    peekSize = 1;
     pollPeriod = 1000;
     inTerminatorDefined = false;
     outTerminatorDefined = false;
@@ -255,6 +257,7 @@ compile(StreamProtocolParser::Protocol* protocol)
         protocol->getNumberVariable("replytimeout", replyTimeout) &&
         protocol->getNumberVariable("writetimeout", writeTimeout) &&
         protocol->getNumberVariable("maxinput", maxInput) &&
+        protocol->getNumberVariable("peeksize", peekSize) &&
         // use replyTimeout as default for pollPeriod
         protocol->getNumberVariable("replytimeout", pollPeriod) &&
         protocol->getNumberVariable("pollperiod", pollPeriod)))

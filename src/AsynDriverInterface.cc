@@ -258,7 +258,7 @@ AsynDriverInterface(Client* client) : StreamBusInterface(client)
     pasynGpib = NULL;
     eventMask = 0;
     receivedEvent = 0;
-    peeksize = 1;
+    peeksize = getPeekSize();
     pasynUser = pasynManager->createAsynUser(handleRequest,
         handleTimeout);
     assert(pasynUser);
@@ -821,7 +821,10 @@ readHandler()
         } while (deveoslen);
     }
 
-    long bytesToRead = peeksize;
+	peeksize = getPeekSize();
+	if( peeksize == 0 )
+        peeksize = inputBuffer.capacity();
+    size_t	bytesToRead = peeksize;
     long buffersize;
 
     if (expectedLength > 0)
@@ -850,33 +853,40 @@ readHandler()
     {
         pasynUser->timeout = replyTimeout;
     }
-    bool waitForReply = true;
-    size_t received;
-    int eomReason;
-    asynStatus status;
-    long readMore;
-    int connected;
+	debug(	"AsynDriverInterface::readHandler(%s): "
+			"bytesToRead=%zu buffersize=%lu peeksize=%d expectedLength=%ld\n",
+			clientName(), bytesToRead, buffersize, peeksize, expectedLength ); 
+    bool			waitForReply = true;
+    size_t			received;
+    int				eomReason;
+    asynStatus		status;
+    long			readMore;
+    int				connected;
 
     while (1)
     {
         readMore = 0;
         received = 0;
         eomReason = 0;
-        
-        status = pasynOctet->read(pvtOctet, pasynUser,
-            buffer, bytesToRead, &received, &eomReason);
+
+		debug(	"AsynDriverInterface::readHandler(%s): Calling %p"
+				" w bytesToRead=%zu timeout=%f sec\n",
+				clientName(), pasynOctet->read, bytesToRead, pasynUser->timeout ); 
+        status = pasynOctet->read(	pvtOctet,	pasynUser,
+            						buffer,		bytesToRead,
+									&received,	&eomReason	);
         if (ioAction == Read || status != asynTimeout)
         {
             debug("AsynDriverInterface::readHandler(%s): "
-                "read(..., bytesToRead=%ld, received=%ld...) "
-                "[timeout=%f seconds] = %s\n",
-                clientName(), bytesToRead, (long)received,
+                "bytesToRead=%zu, received=%zu,"
+                "timeout=%f sec, status=%s\n",
+                clientName(), bytesToRead, received,
                 pasynUser->timeout, asynStatusStr[status]);
         }
         pasynManager->isConnected(pasynUser, &connected);
         debug("AsynDriverInterface::readHandler(%s): "
-            "device is %sconnected\n",
-            clientName(),connected?"":"dis");
+            "device is %s\n",
+            clientName(),connected?"connected":"disconnected");
         if (!connected) {
             error("%s: connection closed in read\n",
                 clientName());
@@ -902,9 +912,9 @@ readHandler()
                 {
 #ifndef NO_TEMPORARY
                     debug("AsynDriverInterface::readHandler(%s): "
-                        "AsyncRead poll: received %ld of %ld bytes \"%s\" "
+                        "AsyncRead poll: received %zu of %zu bytes \"%s\" "
                         "eomReason=%s [data ignored]\n",
-                        clientName(), (long)received, bytesToRead,
+                        clientName(), received, bytesToRead,
                         StreamBuffer(buffer, received).expand()(),
                         eomReasonStr[eomReason&0x7]);
 #endif
@@ -916,9 +926,9 @@ readHandler()
                 }
 #ifndef NO_TEMPORARY
                 debug("AsynDriverInterface::readHandler(%s): "
-                        "received %ld of %ld bytes \"%s\" "
+                        "received %zu of %zu bytes \"%s\" "
                         "eomReason=%s\n",
-                    clientName(), (long)received, bytesToRead,
+                    clientName(), received, bytesToRead,
                     StreamBuffer(buffer, received).expand()(),
                     eomReasonStr[eomReason&0x7]);
 #endif
@@ -976,9 +986,9 @@ readHandler()
 #ifndef NO_TEMPORARY
                 debug("AsynDriverInterface::readHandler(%s): "
                         "ioAction=%s, timeout [%f seconds] "
-                        "after %ld of %ld bytes \"%s\"\n",
+                        "after %zu of %zu bytes \"%s\"\n",
                     clientName(), ioActionStr[ioAction], pasynUser->timeout,
-                    (long)received, bytesToRead,
+                    received, bytesToRead,
                     StreamBuffer(buffer, received).expand()());
 #endif
                 if (ioAction == AsyncRead || ioAction == AsyncReadMore)
@@ -1039,7 +1049,7 @@ readHandler()
             bytesToRead = inputBuffer.capacity();
         }
         debug("AsynDriverInterface::readHandler(%s) "
-            "readMore=%ld bytesToRead=%ld\n",
+            "readMore=%ld bytesToRead=%zu\n",
             clientName(), readMore, bytesToRead);
         pasynUser->timeout = readTimeout;
         waitForReply = false;
