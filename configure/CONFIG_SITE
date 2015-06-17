@@ -27,6 +27,7 @@
 # define INSTALL_LOCATION here
 #INSTALL_LOCATION=<fullpathname>
 
-PCRE_INCLUDE=/afs/slac/g/pcds/package/pcre/8.37/$(T_A)/include
-PCRE_LIB=/afs/slac/g/pcds/package/pcre/8.37/$(T_A)/lib
+# PCRE_LIB and PCRE_INCLUDE definitions moved to $(EPICS_BASE)/configure/CONFIG_SITE
+# PCRE_INCLUDE=/afs/slac/g/pcds/package/pcre/8.37/$(T_A)/include
+# PCRE_LIB=/afs/slac/g/pcds/package/pcre/8.37/$(T_A)/lib
 
