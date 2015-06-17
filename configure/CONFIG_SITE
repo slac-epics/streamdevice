@@ -27,3 +27,6 @@
 # define INSTALL_LOCATION here
 #INSTALL_LOCATION=<fullpathname>
 
+PCRE_INCLUDE=/afs/slac/g/pcds/package/pcre/8.37/$(T_A)/include
+PCRE_LIB=/afs/slac/g/pcds/package/pcre/8.37/$(T_A)/lib
+

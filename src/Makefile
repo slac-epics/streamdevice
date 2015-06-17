@@ -58,13 +58,13 @@ SRCS += $(RECORDS:%=dev%Stream.c)
 SRCS += $(STREAM_SRCS)
 
 # find system wide or local PCRE header and library
-ifdef PCRE_INCLUDE
+ifneq ($(wildcard $(PCRE_INCLUDE)),)
 RegexpConverter_INCLUDES += -I$(PCRE_INCLUDE)
 endif
 ifdef PCRE
 LIB_LIBS += pcre
 else
-ifneq ($(words $(PCRE_LIB) $(PCRE_INCLUDE)),0)
+ifneq ($(wildcard $(PCRE_LIB)),)
 LIB_SYS_LIBS_DEFAULT += pcre
 LIB_SYS_LIBS_WIN32 += $(PCRE_LIB)\\pcre
 SHRLIB_DEPLIB_DIRS += $(PCRE_LIB)
