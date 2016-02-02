@@ -27,7 +27,23 @@
 # define INSTALL_LOCATION here
 #INSTALL_LOCATION=<fullpathname>
 
-# PCRE_LIB and PCRE_INCLUDE definitions moved to $(EPICS_BASE)/configure/CONFIG_SITE
-# PCRE_INCLUDE=/afs/slac/g/pcds/package/pcre/8.37/$(T_A)/include
-# PCRE_LIB=/afs/slac/g/pcds/package/pcre/8.37/$(T_A)/lib
+ifndef CONFIG_SITE_TOP
+ifneq ($(wildcard /reg/g/pcds/pyps/config/common_dirs.*))
+CONFIG_SITE_TOP	= /reg/g/pcds/pyps/config
+else
+CONFIG_SITE_TOP	= /afs/slac/g/pcds/pyps/config
+endif
+endif
 
+include $(CONFIG_SITE_TOP)/common_dirs.mak
+
+PKG_ARCH = $(T_A)
+ifeq '$(PKG_ARCH)' 'linuxRT_glibc-x86_64'
+PKG_ARCH	= rhel6-x86_64
+endif
+
+PCRE_TOP := $(PSPKG_ROOT)/release/pcre/8.37/$(PKG_ARCH)
+PCRE_INCLUDE := $(PCRE_TOP)/include
+PCRE_LIB     := $(PCRE_TOP)/lib
+
+LIB_INSTALLS += $(wildcard $(PCRE_LIB)/lib*)
