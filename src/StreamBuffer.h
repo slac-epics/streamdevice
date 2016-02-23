@@ -21,7 +21,6 @@
 #define StreamBuffer_h
 
 #include <string.h>
-#include <stdio.h>
 
 #ifndef __GNUC__
 #define __attribute__(x)
@@ -68,7 +67,7 @@ public:
         {init(NULL, size);}
 
     ~StreamBuffer()
-        {if (buffer != local) delete [] buffer;}
+        {if (buffer != local) delete buffer;}
 
     // operator (): get char* pointing to index
     const char* operator()(long index=0) const
@@ -189,7 +188,7 @@ public:
     StreamBuffer& insert(long pos, char c)
         {return replace(pos, 0, &c, 1);}
 
-    StreamBuffer& printf(const char* fmt, ...)
+    StreamBuffer& print(const char* fmt, ...)
         __attribute__ ((format(printf,2,3)));
 
     // find: get index of data in buffer or -1

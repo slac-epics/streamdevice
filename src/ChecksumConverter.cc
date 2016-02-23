@@ -32,38 +32,6 @@ typedef unsigned char uchar;
 
 typedef ulong (*checksumFunc)(const uchar* data, ulong len, ulong init);
 
-static ulong sum_cryo(const uchar* data, ulong len, ulong sum)
-{
-   //calculate the mod 256 of the character sum
-    while (len--)
-    {
-        sum += *data++;
-    }
-
-   //now that the characters are added XOR bits
-   bool D0, D1, D6, D7;
-   //get the bit values of the sum
-   D0=sum&0x01; //and the sum with the zero bit
-   D1=sum&0x02; //and the sum with the first bit
-   D6=sum&0x40; //and the sum with the sixth bit
-   D7=sum&0x80; //and the sum with the seventh bit
-
-   //calculate XORs to strip bits 6&7
-   D1=D1^D7; //D1 XOR D7
-   D0=D0^D6; //D0 XOR D6
-
-   //strip out old bits D0-D1, D6-D7
-   sum&=0x3C; //and the sum with 0x3C
-
-   //replace bits D0-D1 with the results
-   sum|=D0; //OR in the resultant zero bit
-   sum|=D1*0x02; //OR in the resultant one bit
-   //now add the '0' character to the result
-   //so the final outcome is a character from '0' to '??'
-   sum+='0';
-   return sum;
-}
-
 static ulong sum(const uchar* data, ulong len, ulong sum)
 {
     while (len--)
@@ -297,7 +265,7 @@ static ulong crc_0x04C11DB7(const uchar* data, ulong len, ulong crc)
 {
     // x^32 + x^26 + x^23 + x^22 + x^16 + x^12 + x^11 + x^10 +
     //    x^8 + x^7 + x^5 + x^4 + x^2 + x^1 + x^0  (0x04C11DB7)
-    const static ulong table[] = {
+    const static unsigned int table[] = {
         0x00000000, 0x04c11db7, 0x09823b6e, 0x0d4326d9,
         0x130476dc, 0x17c56b6b, 0x1a864db2, 0x1e475005,
         0x2608edb8, 0x22c9f00f, 0x2f8ad6d6, 0x2b4bcb61,
@@ -372,7 +340,7 @@ static ulong crc_0x04C11DB7_r(const uchar* data, ulong len, ulong crc)
     // x^32 + x^26 + x^23 + x^22 + x^16 + x^12 + x^11 + x^10 +
     //    x^8 + x^7 + x^5 + x^4 + x^2 + x^1 + x^0  (0x04C11DB7)
     // reflected
-    const static ulong table[] = {
+    const static unsigned int table[] = {
         0x00000000, 0x77073096, 0xee0e612c, 0x990951ba,
         0x076dc419, 0x706af48f, 0xe963a535, 0x9e6495a3,
         0x0edb8832, 0x79dcb8a4, 0xe0d5e91e, 0x97d2d988,
@@ -527,8 +495,7 @@ static checksum checksumMap[] =
     {"crc32r",  crc_0x04C11DB7_r, 0xFFFFFFFF, 0xFFFFFFFF, 4}, // 0xCBF43926
     {"jamcrc",  crc_0x04C11DB7_r, 0xFFFFFFFF, 0x00000000, 4}, // 0x340BC6D9
     {"adler32", adler32,          0x00000001, 0x00000000, 4}, // 0x091E01DE
-    {"hexsum8", hexsum,           0x00,       0x00,       1}, // 0x2D
-    {"cryo",    sum_cryo,         0x00,       0x00,       1}  // 0x2D
+    {"hexsum8", hexsum,           0x00,       0x00,       1}  // 0x2D
 };
 
 static ulong mask[5] = {0, 0xFF, 0xFFFF, 0xFFFFFF, 0xFFFFFFFF};
@@ -578,15 +545,26 @@ printPseudo(const StreamFormat& format, StreamBuffer& output)
     debug("ChecksumConverter %s: output to check: \"%s\"\n",
         checksumMap[fnum].name, output.expand(start,length)());
 
-    sum = checksumMap[fnum].xorout ^ checksumMap[fnum].func(
+    sum = (checksumMap[fnum].xorout ^ checksumMap[fnum].func(
         reinterpret_cast<uchar*>(output(start)), length,
-        checksumMap[fnum].init) & mask[checksumMap[fnum].bytes];
+        checksumMap[fnum].init)) & mask[checksumMap[fnum].bytes];
 
     debug("ChecksumConverter %s: output checksum is 0x%lX\n",
         checksumMap[fnum].name, sum);
 
     int i;
     unsigned outchar;
+    
+    if (format.flags & sign_flag) // decimal
+    {
+        // get number of decimal digits from number of bytes: ceil(xbytes*2.5)
+        i = (checksumMap[fnum].bytes+1)*25/10-2;
+        output.print("%0*ld", i, sum);
+        debug("ChecksumConverter %s: decimal appending %0*ld\n",
+            checksumMap[fnum].name, i, sum);
+        return true;
+    }
+    
     
     if (format.flags & alt_flag) // lsb first (little endian)
     {
@@ -596,7 +574,7 @@ printPseudo(const StreamFormat& format, StreamBuffer& output)
             debug("ChecksumConverter %s: little endian appending 0x%X\n",
                 checksumMap[fnum].name, outchar);
             if (format.flags & zero_flag) // ASCII
-                output.printf("%02X", outchar);
+                output.print("%02X", outchar);
             else                          // binary
                 output.append(outchar);
             sum >>= 8;
@@ -611,7 +589,7 @@ printPseudo(const StreamFormat& format, StreamBuffer& output)
             debug("ChecksumConverter %s: big endian appending 0x%X\n",
                 checksumMap[fnum].name, outchar);
             if (format.flags & zero_flag) // ASCII
-                output.printf("%02X", outchar);
+                output.print("%02X", outchar);
             else                          // binary
                 output.append(outchar);
             sum <<= 8;
@@ -639,15 +617,33 @@ scanPseudo(const StreamFormat& format, StreamBuffer& input, long& cursor)
         return -1;
     }
 
-    sum = checksumMap[fnum].xorout ^ checksumMap[fnum].func(
+    sum = (checksumMap[fnum].xorout ^ checksumMap[fnum].func(
         reinterpret_cast<uchar*>(input(start)), length,
-        checksumMap[fnum].init) & mask[checksumMap[fnum].bytes];
+        checksumMap[fnum].init)) & mask[checksumMap[fnum].bytes];
 
     debug("ChecksumConverter %s: input checksum is 0x%0*lX\n",
         checksumMap[fnum].name, 2*checksumMap[fnum].bytes, sum);
 
     int i,j;
     unsigned inchar;
+    
+    if (format.flags & sign_flag) // decimal
+    {
+        ulong sumin = 0;
+        // get number of decimal digits from number of bytes: ceil(xbytes*2.5)
+        j = (checksumMap[fnum].bytes+1)*25/10-2;
+        for (i = 0; i < j; i++)
+        {
+            inchar = input[cursor+i];
+            if (isdigit(inchar)) sumin = sumin*10+inchar-'0';
+            else break;
+        }
+        if (sumin==sum) return i;
+        error("Input %0*lu does not match checksum %0*lu\n", 
+            i, sumin, j, sum);
+        return -1;
+    }
+    
     
     if (format.flags & alt_flag) // lsb first (little endian)
     {
