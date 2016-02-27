@@ -29,17 +29,10 @@ PROD_SRCS_vxWorks = -nil-
 PROD_LIBS = stream
 
 ifdef ASYN
-# Which types of asyn busses do you have?
-
-# asynDriver up to version 4-16 does not support serial port for Windows!
-#ifneq ($(OS_CLASS), WIN32)
-streamApp_DBD += drvAsynSerialPort.dbd
-#endif
-
-streamApp_DBD += drvAsynIPPort.dbd
-#streamApp_DBD += drvGsIP488.dbd
-#streamApp_DBD += drvNi1014.dbd
-streamApp_DBD += drvVxi11.dbd
+# edit asynRegistrars.dbd if necessary
+streamApp_DBD += asynRegistrars.dbd
+# add asynRecord.dbd if you like
+streamApp_DBD += asynRecord.dbd
 PROD_LIBS += asyn
 endif
 
@@ -74,8 +67,13 @@ CPPFLAGS += -DDEBUGFILE=StreamDebug.log
 
 include $(TOP)/configure/RULES
 
+ifeq ($(BASE_3_14), YES)
 clean: myclean
 realclean: myclean
+else
+clean: myclean
+realclean: myclean
+endif
 
 myclean:
 	$(RM) core* StreamDebug.log
