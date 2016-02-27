@@ -634,7 +634,7 @@ printString(StreamBuffer& buffer, const char* s)
         switch (*s)
         {
             case esc:
-                buffer.print("\\x%02x", (*++s) & 0xff);
+                buffer.printf("\\x%02x", (*++s) & 0xff);
                 break;
             case '\r':
                 buffer.append("\\r");
@@ -655,7 +655,7 @@ printString(StreamBuffer& buffer, const char* s)
                 buffer.append("\\\\");
                 break;
             case format_field:
-                buffer.print("%%(%s)", ++s);
+                buffer.printf("%%(%s)", ++s);
                 while (*s++);
                 s += extract<unsigned short>(s); // skip fieldaddress
                 goto format;
@@ -670,7 +670,7 @@ format:         {
                 continue;
             default:
                 if ((*s & 0x7f) < 0x20 || (*s & 0x7f) == 0x7f)
-                    buffer.print("\\x%02x", *s & 0xff);
+                    buffer.printf("\\x%02x", *s & 0xff);
                 else
                     buffer.append(*s);
         }
@@ -1037,7 +1037,7 @@ compileNumber(unsigned long& number, const char*& source, unsigned long max)
             "Garbage after numeric value: %s\n", buffer());
         return false;
     }
-    if (n > max)
+    if (n < 0 || n > max)
     {
         debug("StreamProtocolParser::Protocol::compileNumber: %s\n",
             buffer.expand()());
@@ -1059,6 +1059,7 @@ compileString(StreamBuffer& buffer, const char*& source,
     FormatType formatType, Client* client, int quoted)
 {
     bool escaped = false;
+    int n;
     int newline = 0;
     StreamBuffer formatbuffer;
     int formatpos = buffer.length();
@@ -1135,8 +1136,7 @@ compileString(StreamBuffer& buffer, const char*& source,
         if (escaped)   // char after \ in quoted text
         {
             escaped = false;
-            unsigned int c;
-            int n=1;
+            unsigned int temp;
             switch (*source)
             {
                 case '$': // can't be: readToken would have made a token from this
@@ -1145,50 +1145,61 @@ compileString(StreamBuffer& buffer, const char*& source,
                     return false;
                 case '?':
                     buffer.append(skip);
-                    source++;
-                    continue;
+                    break;
                 case '_':
                     buffer.append(whitespace);
-                    source++;
-                    continue;
+                    break;
                 case 'a':
-                    c=7;
+                    buffer.append(7);
                     break;
                 case 'b':
-                    c=8;
+                    buffer.append(8);
                     break;
                 case 't':
-                    c=9;
+                    buffer.append(9);
                     break;
                 case 'n':
-                    c='\n';
+                    buffer.append('\n');
                     break;
                 case 'r':
-                    c='\r';
+                    buffer.append('\r');
                     break;
                 case 'e':
-                    c=esc;
+                    buffer.append(esc).append(esc);
                     break;
-                case '0':  // octal numbers (max 4 digits)
-                    sscanf (source, "%4o%n", &c, &n); //cannot fail
-                    if (c > 0xFF)
+                case '0':  // octal numbers (max 3 digits after 0)
+                    sscanf (source, "%3o%n", &temp, &n);
+                    if (temp > 0xFF)
                     {
                         error(line, filename(),
-                            "Octal number %#o does not fit in byte: \"%s\"\n",
-                            c, source-1);
+                            "Octal source %#o does not fit in byte: %s\n",
+                            temp, source-1);
                         return false;
                     }
-                    break;
-                case 'x':  // hex numbers (max 2 digits after x)
-                    if (sscanf (source+1, "%2x%n", &c, &n) < 1)
+                    if (formatType != NoFormat &&
+                        (temp < last_function_code || temp == esc))
+                    {
+                        buffer.append(esc);
+                    }
+                    buffer.append(temp);
+                    source += n;
+                    continue;
+                case 'x':  // hex numbers (max 2 digits after 0)
+                    if (sscanf (source+1, "%2x%n", &temp, &n) < 1)
                     {
                         error(line, filename(),
-                            "Hex digit expected after \\x: \"%s\"\n",
+                            "Hex digit expected after \\x: %s\n",
                             source-1);
                         return false;
                     }
-                    n++;
-                    break;
+                    if (formatType != NoFormat &&
+                        (temp < last_function_code || temp == esc))
+                    {
+                        buffer.append(esc);
+                    }
+                    buffer.append(temp);
+                    source += n+1;
+                    continue;
                 case '1': // decimal numbers (max 3 digits)
                 case '2':
                 case '3':
@@ -1198,24 +1209,26 @@ compileString(StreamBuffer& buffer, const char*& source,
                 case '7':
                 case '8':
                 case '9':
-                    sscanf (source, "%3u%n", &c, &n); //cannot fail
-                    if (c > 0xFF)
+                    sscanf (source, "%3u%n", &temp, &n);
+                    if (temp > 0xFF)
                     {
                         error(line, filename(),
-                            "Decimal number %d does not fit in byte: \"%s\"\n",
-                            c, source-1);
+                            "Decimal source %d does not fit in byte: %s\n",
+                            temp, source-1);
                         return false;
                     }
-                    break;
+                    if (formatType != NoFormat &&
+                        (temp < last_function_code || temp == esc))
+                    {
+                        buffer.append(esc);
+                    }
+                    buffer.append(temp);
+                    source += n;
+                    continue;
                 default:  // escaped literals
-                    c=*source;
+                    buffer.append(esc).append(*source);
             }
-            source+=n;
-            if (formatType != NoFormat)
-            {
-                buffer.append(esc);
-            }
-            buffer.append(c);
+            source++;
             continue;
         }
         if (quoted) // look for ending quotes and escapes
@@ -1268,7 +1281,7 @@ compileString(StreamBuffer& buffer, const char*& source,
         }
         // try numeric byte value
         char* p;
-        int c = strtol(source, &p, 0);
+        int temp = strtol(source, &p, 0);
         if (p != source)
         {
             if (*p != 0)
@@ -1277,17 +1290,18 @@ compileString(StreamBuffer& buffer, const char*& source,
                     "Garbage after numeric source: %s", source);
                 return false;
             }
-            if (c > 0xFF || c < -0x80)
+            if (temp > 0xFF || temp < -0x80)
             {
                 error(line, filename(),
                     "Value %s does not fit in byte\n", source);
                 return false;
             }
-            if (formatType != NoFormat)
+            if (formatType != NoFormat &&
+                (temp < last_function_code || temp == esc))
             {
                 buffer.append(esc);
             }
-            buffer.append(c);
+            buffer.append(temp);
             source = p+1+sizeof(int);
             continue;
         }
@@ -1334,7 +1348,7 @@ compileString(StreamBuffer& buffer, const char*& source,
             {"del",  0x7f}
         };
         size_t i;
-        c=-1;
+        char c = 0;
         for (i = 0; i < sizeof(codes)/sizeof(*codes); i++)
         {
             if (strcmp(source, codes[i].name) == 0)
@@ -1347,7 +1361,8 @@ compileString(StreamBuffer& buffer, const char*& source,
                         source);
                     return false;
                 }
-                if (formatType != NoFormat)
+                if (formatType != NoFormat &&
+                    (temp < last_function_code || temp == esc))
                 {
                     buffer.append(esc);
                 }
@@ -1356,10 +1371,10 @@ compileString(StreamBuffer& buffer, const char*& source,
                 break;
             }
         }
-        if (c >= 0) continue;
+        if (c) continue;
         // source may contain a function name
         error(line, filename(),
-            "Unexpected word: \"%s\"\n", source);
+            "Unexpected word: %s\n", source);
         return false;
     }
     debug("StreamProtocolParser::Protocol::compileString buffer=%s\n", buffer.expand()());
@@ -1478,10 +1493,8 @@ compileFormat(StreamBuffer& buffer, const char*& formatstr,
     buffer.append(&streamFormat, sizeof(streamFormat));
     buffer.append(infoString);
 
-    debug("StreamProtocolParser::Protocol::compileFormat: format.type=%s, "
-        "infolen=%d infostring=\"%s\"\n",
-        StreamFormatTypeStr[streamFormat.type],
-        streamFormat.infolen, infoString.expand()());
+    debug("StreamProtocolParser::Protocol::compileFormat: format.type=%s, infolen=%d\n",
+        StreamFormatTypeStr[streamFormat.type], streamFormat.infolen);
     formatstr = source; // move pointer after parsed format
     return true;
 }

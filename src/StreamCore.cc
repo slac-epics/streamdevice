@@ -57,12 +57,12 @@ static char* printCommands(StreamBuffer& buffer, const char* c)
                 break;
             case wait_cmd:
                 timeout = extract<unsigned long>(c);
-                buffer.print("    wait %ld;\n # ms", timeout);
+                buffer.printf("    wait %ld;\n # ms", timeout);
                 break;
             case event_cmd:
                 eventnumber = extract<unsigned long>(c);
                 timeout = extract<unsigned long>(c);
-                buffer.print("    event(%ld) %ld; # ms\n", eventnumber, timeout);
+                buffer.printf("    event(%ld) %ld; # ms\n", eventnumber, timeout);
                 break;
             case exec_cmd:
                 buffer.append("    exec \"");
@@ -71,7 +71,7 @@ static char* printCommands(StreamBuffer& buffer, const char* c)
                 break;
             case connect_cmd:
                 timeout = extract<unsigned long>(c);
-                buffer.print("    connect %ld; # ms\n", timeout);
+                buffer.printf("    connect %ld; # ms\n", timeout);
                 break;
             case disconnect_cmd:
                 buffer.append("    disconnect;\n");
@@ -97,6 +97,7 @@ printProtocol()
     printf("  writeTimeout  = %ld; # ms\n", writeTimeout);
     printf("  pollPeriod    = %ld; # ms\n", pollPeriod);
     printf("  maxInput      = %ld; # bytes\n", maxInput);
+    printf("  peekSize      = %ld; # bytes\n", peekSize);
     StreamProtocolParser::printString(buffer.clear(), inTerminator());
     printf("  inTerminator  = \"%s\";\n", buffer());
         StreamProtocolParser::printString(buffer.clear(), outTerminator());
@@ -118,6 +119,7 @@ printProtocol()
     if (onMismatch)
         printf("  @Mismatch {\n%s  }\n",
         printCommands(buffer.clear(), onMismatch()));
+    debug("StreamCore::printProtocol: commands=%s\n", commands.expand()());
     printf("\n%s}\n",
         printCommands(buffer.clear(), commands()));
 }
@@ -238,6 +240,7 @@ compile(StreamProtocolParser::Protocol* protocol)
     replyTimeout = 1000;
     writeTimeout = 100;
     maxInput = 0;
+    peekSize = 1;
     pollPeriod = 1000;
     inTerminatorDefined = false;
     outTerminatorDefined = false;
@@ -254,6 +257,7 @@ compile(StreamProtocolParser::Protocol* protocol)
         protocol->getNumberVariable("replytimeout", replyTimeout) &&
         protocol->getNumberVariable("writetimeout", writeTimeout) &&
         protocol->getNumberVariable("maxinput", maxInput) &&
+        protocol->getNumberVariable("peeksize", peekSize) &&
         // use replyTimeout as default for pollPeriod
         protocol->getNumberVariable("replytimeout", pollPeriod) &&
         protocol->getNumberVariable("pollperiod", pollPeriod)))
@@ -1158,7 +1162,8 @@ matchInput()
     */
     char command;
     const char* fieldName = NULL;
-    StreamBuffer formatstring;
+    const char* formatstring;
+    int formatstringlen;
     
     consumedInput = 0;
     
@@ -1184,14 +1189,22 @@ normal_format:
                 int consumed;
                 // code layout:
                 // formatstring <eos> StreamFormat [info]
-                commandIndex = StreamProtocolParser::printString(formatstring, commandIndex);
+                formatstring = commandIndex;
+                // jump after <eos>
+                while (*commandIndex)
+                {
+                    if (*commandIndex == esc) commandIndex++;
+                    commandIndex++;
+                }
+                formatstringlen = commandIndex-formatstring;
+                commandIndex++;
                 
                 StreamFormat fmt = extract<StreamFormat>(commandIndex);
                 fmt.info = commandIndex; // point to info string
                 commandIndex += fmt.infolen;
 #ifndef NO_TEMPORARY
-                debug("StreamCore::matchInput(%s): format = \"%%%s\"\n",
-                    name(), formatstring());
+                debug("StreamCore::matchInput(%s): format = %%%s\n",
+                    name(), StreamBuffer(formatstring, formatstringlen).expand()());
 #endif
 
                 if (fmt.flags & skip_flag || fmt.type == pseudo_format)
@@ -1233,10 +1246,10 @@ normal_format:
                         {
                             if (!(flags & AsyncMode) && onMismatch[0] != in_cmd)
                             {
-                                error("%s: Input \"%s%s\" does not match format \"%%%s\"\n",
+                                error("%s: Input \"%s%s\" does not match format %%%s\n",
                                     name(), inputLine.expand(consumedInput, 20)(),
                                     inputLine.length()-consumedInput > 20 ? "..." : "",
-                                    formatstring());
+                                    formatstring);
                             }
                             return false;
                         }
@@ -1250,12 +1263,13 @@ normal_format:
                     flags &= ~Separator;
                     if (!formatValue(fmt, fieldAddress ? fieldAddress() : NULL))
                     {
+                        StreamBuffer formatstr(formatstring, formatstringlen);
                         if (fieldAddress)
-                            error("%s: Cannot format variable \"%s\" with \"%%%s\"\n",
-                                name(), fieldName, formatstring());
+                            error("%s: Cannot format field '%s' with '%%%s'\n",
+                                name(), fieldName, formatstr.expand()());
                         else
-                            error("%s: Cannot format value with \"%%%s\"\n",
-                                name(), formatstring());
+                            error("%s: Cannot format value with '%%%s'\n",
+                                name(), formatstr.expand()());
                         return false;
                     }
 #ifndef NO_TEMPORARY
@@ -1268,11 +1282,11 @@ normal_format:
                         if (!(flags & AsyncMode) && onMismatch[0] != in_cmd)
                         {
                             error("%s: Input \"%s%s\" too short."
-                                  " No match for format \"%%%s\" (\"%s\")\n",
+                                  " No match for format %%%s (\"%s\")\n",
                                 name(), 
                                 inputLine.length() > 20 ? "..." : "",
                                 inputLine.expand(-20)(),
-                                formatstring(),
+                                formatstring,
                                 outputLine.expand()());
                         }
                         return false;
@@ -1281,13 +1295,24 @@ normal_format:
                     {
                         if (!(flags & AsyncMode) && onMismatch[0] != in_cmd)
                         {
-                            error("%s: Input \"%s%s\" does not match format \"%%%s\" (\"%s\")\n",
+                            error("%s: Input \"%s%s\" does not match"
+                                  " format %%%s (\"%s\")\n",
                                 name(), inputLine.expand(consumedInput, 20)(),
                                 inputLine.length()-consumedInput > 20 ? "..." : "",
-                                formatstring(),
+                                formatstring,
                                 outputLine.expand()());
                         }
-                        return false;
+                        else
+                        {
+                            if (!(flags & AsyncMode) && onMismatch[0] != in_cmd)
+                            {
+                                error("%s: Input \"%s%s\" does not match format %%%s\n",
+                                    name(), inputLine.expand(consumedInput, 20)(),
+                                    inputLine.length()-consumedInput > 20 ? "..." : "",
+                                    formatstring);
+                            }
+                            return false;
+                        }
                     }
                     consumedInput += outputLine.length();
                     break;
@@ -1298,13 +1323,13 @@ normal_format:
                     if (!(flags & AsyncMode) && onMismatch[0] != in_cmd)
                     {
                         if (flags & ScanTried)
-                            error("%s: Input \"%s%s\" does not match format \"%%%s\"\n",
+                            error("%s: Input \"%s%s\" does not match format %%%s\n",
                                 name(), inputLine.expand(consumedInput, 20)(),
                                 inputLine.length()-consumedInput > 20 ? "..." : "",
-                                formatstring());
+                                formatstring);
                         else
-                            error("%s: Format \"%%%s\" has data type %s which does not match variable \"%s\".\n",
-                                name(), formatstring(), StreamFormatTypeStr[fmt.type], fieldName);
+                            error("%s: Format %%%s has data type %s which does not match this variable.\n",
+                                name(), formatstring, StreamFormatTypeStr[fmt.type] );
                     }
                     return false;
                 }

@@ -20,7 +20,6 @@
 #include "StreamError.h"
 #include <string.h>
 #include <time.h>
-#include <stdio.h>
 
 int streamDebug = 0;
 extern "C" {

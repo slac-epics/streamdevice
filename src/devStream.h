@@ -22,8 +22,7 @@
 #define devStream_h
 
 #define STREAM_MAJOR 2
-#define STREAM_MINOR 6
-#define STREAM_PATCHLEVEL 0
+#define STREAM_MINOR 4
 
 #if defined(__vxworks) || defined(vxWorks)
 #include <vxWorks.h>
@@ -41,11 +40,11 @@
 #define INIT_RUN (!interruptAccept)
 
 #include <epicsVersion.h>
-#ifdef BASE_RELEASE
-#define EPICS_3_13
+#if (EPICS_VERSION == 3 && EPICS_REVISION == 14)
+#define EPICS_3_14
 #endif
 
-#if defined(__cplusplus) && defined(EPICS_3_13)
+#if defined(__cplusplus) && !defined(EPICS_3_14)
 extern "C" {
 #endif
 
@@ -56,7 +55,7 @@ extern "C" {
 /* #include <dbFldTypes.h> */
 #include <dbAccess.h>
 
-#if defined(__cplusplus) && defined(EPICS_3_13)
+#if defined(__cplusplus) && !defined(EPICS_3_14)
 }
 #endif
 
@@ -70,22 +69,23 @@ typedef const struct format_s {
 extern "C" {
 #endif
 
-epicsShareExtern FILE* StreamDebugFile;
+#ifdef _WIN32
+__declspec(dllimport)
+#endif
+extern FILE* StreamDebugFile;
 
 extern const char StreamVersion [];
 
 typedef long (*streamIoFunction) (dbCommon*, format_t*);
 
-epicsShareExtern long streamInit(int after);
-epicsShareExtern long streamInitRecord(dbCommon *record,
-    const struct link *ioLink,
+long streamInit(int after);
+long streamInitRecord(dbCommon *record, struct link *ioLink,
     streamIoFunction readData, streamIoFunction writeData);
-epicsShareExtern long streamReport(int interest);
-epicsShareExtern long streamReadWrite(dbCommon *record);
-epicsShareExtern long streamGetIointInfo(int cmd,
-    dbCommon *record, IOSCANPVT *ppvt);
-epicsShareExtern long streamPrintf(dbCommon *record, format_t *format, ...);
-epicsShareExtern long streamScanfN(dbCommon *record, format_t *format,
+long streamReport(int interest);
+long streamReadWrite(dbCommon *record);
+long streamGetIointInfo(int cmd, dbCommon *record, IOSCANPVT *ppvt);
+long streamPrintf(dbCommon *record, format_t *format, ...);
+long streamScanfN(dbCommon *record, format_t *format,
     void*, size_t maxStringSize);
 
 /* backward compatibility stuff */

@@ -47,67 +47,48 @@ public:
         virtual const char* name() = 0;
         virtual const char* getInTerminator(size_t& length) = 0;
         virtual const char* getOutTerminator(size_t& length) = 0;
+        virtual unsigned long getPeekSize() = 0;
     public:
         virtual ~Client();
     protected:
         StreamBusInterface* businterface;
         bool busSupportsEvent() {
-            if (businterface)
-                return businterface->supportsEvent();
-            else return false;
+            return businterface->supportsEvent();
         }
         bool busSupportsAsyncRead() {
-            if (businterface)
-                return businterface->supportsAsyncRead();
-            else return false;
+            return businterface->supportsAsyncRead();
         }
         bool busAcceptEvent(unsigned long mask,
             unsigned long replytimeout_ms) {
-            if (businterface)
-                return businterface->acceptEvent(mask, replytimeout_ms);
-            else return false;
+            return businterface->acceptEvent(mask, replytimeout_ms);
         }
         void busRelease() {
-            if (businterface)
-                businterface->release();
+            businterface->release();
         }
         bool busLockRequest(unsigned long timeout_ms) {
-            if (businterface)
-                return businterface->lockRequest(timeout_ms);
-            else return false;
+            return businterface->lockRequest(timeout_ms);
         }
         bool busUnlock() {
-            if (businterface)
-                return businterface->unlock();
-            else return false;
+            return businterface->unlock();
         }
         bool busWriteRequest(const void* output, size_t size,
             unsigned long timeout_ms) {
-            if (businterface)
-                return businterface->writeRequest(output, size, timeout_ms);
-            else return false;
+            return businterface->writeRequest(output, size, timeout_ms);
         }
         bool busReadRequest(unsigned long replytimeout_ms,
             unsigned long readtimeout_ms, long expectedLength,
             bool async) {
-            if (businterface)
-                return businterface->readRequest(replytimeout_ms,
-                    readtimeout_ms, expectedLength, async);
-            else return false;
+            return businterface->readRequest(replytimeout_ms,
+                readtimeout_ms, expectedLength, async);
         }
         void busFinish() {
-            if (businterface)
-                businterface->finish();
+            businterface->finish();
         }
         bool busConnectRequest(unsigned long timeout_ms) {
-            if (businterface)
-                return businterface->connectRequest(timeout_ms);
-            else return false;
+            return businterface->connectRequest(timeout_ms);
         }
         bool busDisconnect() {
-            if (businterface)
-                return businterface->disconnectRequest();
-            else return false;
+            return businterface->disconnectRequest();
         }
     };
 
@@ -140,6 +121,8 @@ protected:
         { return client->getInTerminator(length); }
     const char* getOutTerminator(size_t& length)
         { return client->getOutTerminator(length); }
+    unsigned long getPeekSize()
+        { return client->getPeekSize(); }
     long priority() { return client->priority(); }
     const char* clientName() { return client->name(); }
 

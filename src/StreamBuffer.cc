@@ -248,7 +248,7 @@ replace(long remstart, long remlen, const void* ins, long inslen)
 }
 
 StreamBuffer& StreamBuffer::
-print(const char* fmt, ...)
+printf(const char* fmt, ...)
 {
     va_list va;
     int printed;
@@ -296,7 +296,7 @@ StreamBuffer StreamBuffer::expand(long start, long length) const
         c = buffer[i];
         if ((c & 0x7f) < 0x20 || (c & 0x7f) == 0x7f)
         {
-            result.print("<%02x>", c & 0xff);
+            result.printf("<%02x>", c & 0xff);
         }
         else
         {
@@ -312,17 +312,17 @@ dump() const
     StreamBuffer result(256+cap*5);
     result.append("\033[0m");
     long i;
-    result.print("%ld,%ld,%ld:\033[37m", offs, len, cap);
+    result.printf("%ld,%ld,%ld:\033[37m", offs, len, cap);
     for (i = 0; i < cap; i++)
     {
         if (i == offs) result.append("\033[34m[\033[0m");
         if ((buffer[i] & 0x7f) < 0x20 || (buffer[i] & 0x7f) == 0x7f)
         {
             if (i < offs || i >= offs+len)
-            result.print(
+            result.printf(
                 "<%02x>", buffer[i] & 0xff);
             else
-            result.print(
+            result.printf(
                 "\033[34m<%02x>\033[37m", buffer[i] & 0xff);
         }
         else
