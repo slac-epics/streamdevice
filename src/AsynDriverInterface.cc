@@ -634,7 +634,8 @@ writeHandler()
         if (received) debug("AsynDriverInterface::writeHandler(%s): flushing %ld bytes: \"%s\"\n",
             clientName(), (long)received, StreamBuffer(buffer, received).expand()());
 #endif
-    } while (status != asynTimeout);
+    } while (status != asynTimeout && status != asynError);
+    // MCB - If we don't check for asynError, we can be hung here, locked up forever!
         
     // discard any early events
     receivedEvent = 0;
