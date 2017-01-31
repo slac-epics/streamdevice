@@ -1,4 +1,4 @@
-TOP=../..
+TOP=..
 
 # Look if we have EPICS R3.13 or R3.14
 ifeq ($(wildcard $(TOP)/configure),)
@@ -42,21 +42,23 @@ ifneq ($(words $(CALC) $(SYNAPPS)), 0)
 # With synApps scalcout record
 streamApp_DBD += calcSupport.dbd
 streamApp_DBD += streamSynApps.dbd
-PROD_LIBS += calc
+#PROD_LIBS += calc
 # older calc versions require sscan
-#PROD_LIBS += sscan
+PROD_LIBS += sscan
 PROD_LIBS_DEFAULT += streamSynApps
 endif
 
 streamApp_DBD += stream.dbd
 
+
 ifdef PCRE
-PROD_LIBS += pcre
+LIB_LIBS += pcre
 else
 ifneq ($(words $(PCRE_LIB) $(PCRE_INCLUDE)),0)
 PROD_SYS_LIBS_DEFAULT += pcre
 PROD_SYS_LIBS_WIN32 += $(PCRE_LIB)\\pcre
 SHRLIB_DEPLIB_DIRS += $(PCRE_LIB)
+PROD_DEPLIB_DIRS += $(PCRE_LIB)
 endif
 endif
 
