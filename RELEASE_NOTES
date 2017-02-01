@@ -1,2 +1,14 @@
-R2.7.7-0:   31-Jan-2017, H. Slepicka (slepicka)
+R2.7.7-1.0:   31-Jan-2017, H. Slepicka (slepicka)
+    Applied patch <>/patches/0001-adding_calc_and_sscan.patch
+        Add support for CALC and SSCAN modules
+    Applied patch <>/patches/0002-peeksize.patch
+        Change peek size from hardcoded to client->getPeekSize()
+        Add more debug information
+    Applied patch <>/patches/0003-SHDLConverter.patch
+        Add Sensirion High-Level Data Link Control (SHDLC) Format Conv
+    Applied patch <>/patches/0004-ChecksumConverter.patch
+        Change checksumFunc signature unsigned int -> unsigned long
+        Add cryo (sum_cryo) checksum function
+
+R2.7.7-0.1:   31-Jan-2017, H. Slepicka (slepicka)
     First version of streamdevice working with the new Git Workflow.

@@ -13,7 +13,7 @@ include $(TOP)/configure/CONFIG
 
 #HOST_OPT = NO
 
-PROD = streamApp
+#PROD = streamApp
 DBD  = streamApp.dbd
 
 streamApp_DBD += base.dbd
@@ -42,7 +42,7 @@ ifneq ($(words $(CALC) $(SYNAPPS)), 0)
 # With synApps scalcout record
 streamApp_DBD += calcSupport.dbd
 streamApp_DBD += streamSynApps.dbd
-#PROD_LIBS += calc
+PROD_LIBS += calc
 # older calc versions require sscan
 PROD_LIBS += sscan
 PROD_LIBS_DEFAULT += streamSynApps

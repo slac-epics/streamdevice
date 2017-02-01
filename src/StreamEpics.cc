@@ -843,6 +843,7 @@ protocolFinishHook(ProtocolResult result)
                     // but now this record has a value
                     record->sevr = NO_ALARM;
                     record->stat = NO_ALARM;
+                    recGblGetTimeStamp(record);
                 }
             }
             break;

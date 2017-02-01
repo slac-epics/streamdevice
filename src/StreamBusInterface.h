@@ -59,6 +59,7 @@ public:
         virtual long priority();
         virtual const char* getInTerminator(size_t& length) = 0;
         virtual const char* getOutTerminator(size_t& length) = 0;
+        virtual unsigned long getPeekSize() = 0;
     public:
         virtual const char* name() = 0;
         virtual ~Client();
@@ -136,6 +137,8 @@ protected:
         { return client->getInTerminator(length); }
     const char* getOutTerminator(size_t& length)
         { return client->getOutTerminator(length); }
+    unsigned long getPeekSize()
+        { return client->getPeekSize(); }
     long priority() { return client->priority(); }
     const char* clientName() { return client->name(); }
 

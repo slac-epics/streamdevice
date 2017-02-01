@@ -261,8 +261,7 @@ AsynDriverInterface(Client* client) : StreamBusInterface(client)
     pasynGpib = NULL;
     eventMask = 0;
     receivedEvent = 0;
-    peeksize = 1;
-    debug ("AsynDriverInterface(%s) createAsynUser\n", client->name());
+    peeksize = getPeekSize();
     pasynUser = pasynManager->createAsynUser(handleRequest,
         handleTimeout);
     assert(pasynUser);
@@ -667,25 +666,28 @@ writeHandler()
 
     pasynUser->timeout = 0;
     if (!pasynGpib)
-    // discard any early input, but forward it to potential async records
-    // thus do not use pasynOctet->flush()
-    // unfortunately we cannot do this with GPIB because addressing a device as talker
-    // when it has nothing to say is an error. Also timeout=0 does not help here (would need
-    // a change in asynGPIB), thus use flush() for GPIB.
-    do {
-        char buffer [256];
-        size_t received = 0;
-        int eomReason = 0;
-        debug("AsynDriverInterface::writeHandler(%s): reading old input\n",
-            clientName());
-        status = pasynOctet->read(pvtOctet, pasynUser,
-            buffer, sizeof(buffer), &received, &eomReason);
-        if (status == asynError || received == 0) break;
+    {
+        // discard any early input, but forward it to potential async records
+        // thus do not use pasynOctet->flush()
+        // unfortunately we cannot do this with GPIB because addressing a device as talker
+        // when it has nothing to say is an error. Also timeout=0 does not help here (would need
+        // a change in asynGPIB), thus use flush() for GPIB.
+        do {
+            char buffer [256];
+            size_t received = 0;
+            int eomReason = 0;
+            debug("AsynDriverInterface::writeHandler(%s): reading old input\n",
+                clientName());
+            status = pasynOctet->read(pvtOctet, pasynUser,
+                buffer, sizeof(buffer), &received, &eomReason);
+            if (status == asynError || received == 0) break;
 #ifndef NO_TEMPORARY
-        if (received) debug("AsynDriverInterface::writeHandler(%s): flushing %ld bytes: \"%s\"\n",
-            clientName(), (long)received, StreamBuffer(buffer, received).expand()());
+            if (received) debug("AsynDriverInterface::writeHandler(%s): flushing %ld bytes: \"%s\"\n",
+                clientName(), (long)received, StreamBuffer(buffer, received).expand()());
 #endif
-    } while (status == asynSuccess);
+        } while (status != asynTimeout && status != asynError);
+        // MCB - If we don't check for asynError, we can be hung here, locked up forever!
+    }
     else
     {
         debug("AsynDriverInterface::writeHandler(%s): flushing old input\n",
@@ -910,7 +912,10 @@ readHandler()
         } while (deveoslen);
     }
 
-    long bytesToRead = peeksize;
+	peeksize = getPeekSize();
+	if( peeksize == 0 )
+        peeksize = inputBuffer.capacity();
+    size_t	bytesToRead = peeksize;
     long buffersize;
 
     if (expectedLength > 0)
@@ -939,12 +944,15 @@ readHandler()
     {
         pasynUser->timeout = replyTimeout;
     }
-    bool waitForReply = true;
-    size_t received;
-    int eomReason;
-    asynStatus status;
-    long readMore;
-    int connected;
+	debug(	"AsynDriverInterface::readHandler(%s): "
+			"bytesToRead=%zu buffersize=%lu peeksize=%d expectedLength=%ld\n",
+			clientName(), bytesToRead, buffersize, peeksize, expectedLength ); 
+    bool			waitForReply = true;
+    size_t			received;
+    int				eomReason;
+    asynStatus		status;
+    long			readMore;
+    int				connected;
 
     while (1)
     {
@@ -953,26 +961,31 @@ readHandler()
         eomReason = 0;
         
         debug("AsynDriverInterface::readHandler(%s): ioAction=%s "
-            "read(..., bytesToRead=%ld, ...) "
+            "read(..., bytesToRead=%zu, ...) "
             "[timeout=%g sec]\n",
             clientName(), ioActionStr[ioAction],
             bytesToRead, pasynUser->timeout);
-        status = pasynOctet->read(pvtOctet, pasynUser,
-            buffer, bytesToRead, &received, &eomReason);
-        debug("AsynDriverInterface::readHandler(%s): "
-            "read returned %s: ioAction=%s received=%ld, eomReason=%s, buffer=\"%s\"\n",
-            clientName(), asynStatusStr[status], ioActionStr[ioAction],
-            (long)received,eomReasonStr[eomReason&0x7],
-            StreamBuffer(buffer, received).expand()());
+        status = pasynOctet->read(	pvtOctet,	pasynUser,
+            						buffer,		bytesToRead,
+									&received,	&eomReason	);
+        if (ioAction == Read || status != asynTimeout)
+        {
+			debug("AsynDriverInterface::readHandler(%s): "
+				"read returned %s: ioAction=%s received=%zu, eomReason=%s, buffer=\"%s\"\n",
+				clientName(), asynStatusStr[status], ioActionStr[ioAction],
+				received,eomReasonStr[eomReason&0x7],
+				StreamBuffer(buffer, received).expand()());
+        }
 
         pasynManager->isConnected(pasynUser, &connected);
         debug("AsynDriverInterface::readHandler(%s): "
-            "device is now %sconnected\n",
-            clientName(),connected?"":"dis");        
+            "device is %s\n",
+            clientName(),connected?"connected":"disconnected");
         // asyn 4.16 sets reason to ASYN_EOM_END when device disconnects.
         // What about earlier versions?
-        if (!connected) eomReason |= ASYN_EOM_END;
-        
+        if (!connected)
+			eomReason |= ASYN_EOM_END;
+
         if (status == asynTimeout &&
             pasynUser->timeout == 0.0 &&
             received > 0)
@@ -990,9 +1003,9 @@ readHandler()
                 {
 #ifndef NO_TEMPORARY
                     debug("AsynDriverInterface::readHandler(%s): "
-                        "AsyncRead poll: received %ld of %ld bytes \"%s\" "
+                        "AsyncRead poll: received %zu of %zu bytes \"%s\" "
                         "eomReason=%s [data ignored]\n",
-                        clientName(), (long)received, bytesToRead,
+                        clientName(), received, bytesToRead,
                         StreamBuffer(buffer, received).expand()(),
                         eomReasonStr[eomReason&0x7]);
 #endif
@@ -1005,9 +1018,9 @@ readHandler()
                 }
 #ifndef NO_TEMPORARY
                 debug("AsynDriverInterface::readHandler(%s): "
-                        "received %ld of %ld bytes \"%s\" "
+                        "received %zu of %zu bytes \"%s\" "
                         "eomReason=%s\n",
-                    clientName(), (long)received, bytesToRead,
+                    clientName(), received, bytesToRead,
                     StreamBuffer(buffer, received).expand()(),
                     eomReasonStr[eomReason&0x7]);
 #endif
@@ -1068,9 +1081,9 @@ readHandler()
 #ifndef NO_TEMPORARY
                 debug("AsynDriverInterface::readHandler(%s): "
                         "ioAction=%s, timeout [%g sec] "
-                        "after %ld of %ld bytes \"%s\"\n",
+                        "after %zu of %zu bytes \"%s\"\n",
                     clientName(), ioActionStr[ioAction], pasynUser->timeout,
-                    (long)received, bytesToRead,
+                    received, bytesToRead,
                     StreamBuffer(buffer, received).expand()());
 #endif
                 if (ioAction == AsyncRead || ioAction == AsyncReadMore)
@@ -1131,7 +1144,7 @@ readHandler()
             bytesToRead = inputBuffer.capacity();
         }
         debug("AsynDriverInterface::readHandler(%s) "
-            "readMore=%ld bytesToRead=%ld\n",
+            "readMore=%ld bytesToRead=%zu\n",
             clientName(), readMore, bytesToRead);
         pasynUser->timeout = readTimeout;
         waitForReply = false;

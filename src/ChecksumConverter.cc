@@ -39,9 +39,41 @@ static int strncasecmp(const char *s1, const char *s2, size_t n)
 #endif
 #include <ctype.h>
 
-typedef unsigned int (*checksumFunc)(const unsigned char* data, unsigned int len,  unsigned int init);
+typedef unsigned long (*checksumFunc)(const unsigned char* data, unsigned long len,  unsigned long init);
 
-static unsigned int sum(const unsigned char* data, unsigned int len, unsigned int sum)
+static unsigned long sum_cryo(const unsigned char* data, unsigned long len, unsigned long sum)
+{
+   //calculate the mod 256 of the character sum
+    while (len--)
+    {
+        sum += *data++;
+    }
+
+   //now that the characters are added XOR bits
+   bool D0, D1, D6, D7;
+   //get the bit values of the sum
+   D0=sum&0x01; //and the sum with the zero bit
+   D1=sum&0x02; //and the sum with the first bit
+   D6=sum&0x40; //and the sum with the sixth bit
+   D7=sum&0x80; //and the sum with the seventh bit
+
+   //calculate XORs to strip bits 6&7
+   D1=D1^D7; //D1 XOR D7
+   D0=D0^D6; //D0 XOR D6
+
+   //strip out old bits D0-D1, D6-D7
+   sum&=0x3C; //and the sum with 0x3C
+
+   //replace bits D0-D1 with the results
+   sum|=D0; //OR in the resultant zero bit
+   sum|=D1*0x02; //OR in the resultant one bit
+   //now add the '0' character to the result
+   //so the final outcome is a character from '0' to '??'
+   sum+='0';
+   return sum;
+}
+
+static unsigned long sum(const unsigned char* data, unsigned long len, unsigned long sum)
 {
     while (len--)
     {
@@ -50,7 +82,7 @@ static unsigned int sum(const unsigned char* data, unsigned int len, unsigned in
     return sum;
 }
 
-static unsigned int xor8(const unsigned char* data, unsigned int len, unsigned int sum)
+static unsigned long xor8(const unsigned char* data, unsigned long len, unsigned long sum)
 {
     while (len--)
     {
@@ -59,12 +91,12 @@ static unsigned int xor8(const unsigned char* data, unsigned int len, unsigned i
     return sum;
 }
 
-static unsigned int xor7(const unsigned char* data, unsigned int len, unsigned int sum)
+static unsigned long xor7(const unsigned char* data, unsigned long len, unsigned long sum)
 {
     return xor8(data, len, sum) & 0x7F;
 }
 
-static unsigned int crc_0x07(const unsigned char* data, unsigned int len, unsigned int crc)
+static unsigned long crc_0x07(const unsigned char* data, unsigned long len, unsigned long crc)
 {
     // x^8 + x^2 + x^1 + x^0 (0x07)
     const static unsigned char table[256] = {
@@ -105,7 +137,7 @@ static unsigned int crc_0x07(const unsigned char* data, unsigned int len, unsign
     return crc;
 }
 
-static unsigned int crc_0x31(const unsigned char* data, unsigned int len, unsigned int crc)
+static unsigned long crc_0x31(const unsigned char* data, unsigned long len, unsigned long crc)
 {
     // x^8 + x^5 + x^4 + x^0 (0x31)
     const static unsigned char table[256] = {
@@ -146,7 +178,7 @@ static unsigned int crc_0x31(const unsigned char* data, unsigned int len, unsign
     return crc;
 }
 
-static unsigned int crc_0x8005(const unsigned char* data, unsigned int len, unsigned int crc)
+static unsigned long crc_0x8005(const unsigned char* data, unsigned long len, unsigned long crc)
 {
     // x^16 + x^15 + x^2 + x^0  (0x8005)
     const static unsigned short table[256] = {
@@ -187,7 +219,7 @@ static unsigned int crc_0x8005(const unsigned char* data, unsigned int len, unsi
     return crc;
 }
 
-static unsigned int crc_0x8005_r(const unsigned char* data, unsigned int len, unsigned int crc)
+static unsigned long crc_0x8005_r(const unsigned char* data, unsigned long len, unsigned long crc)
 {
     // x^16 + x^15 + x^2 + x^0  (0x8005)
     // reflected
@@ -229,7 +261,7 @@ static unsigned int crc_0x8005_r(const unsigned char* data, unsigned int len, un
     return crc;
 }
 
-static unsigned int crc_0x1021(const unsigned char* data, unsigned int len, unsigned int crc)
+static unsigned long crc_0x1021(const unsigned char* data, unsigned long len, unsigned long crc)
 {
     // x^16 + x^12 + x^5 + x^0 (0x1021)
     const static unsigned short table[256] = {
@@ -270,7 +302,7 @@ static unsigned int crc_0x1021(const unsigned char* data, unsigned int len, unsi
     return crc;
 }
 
-static unsigned int crc_0x04C11DB7(const unsigned char* data, unsigned int len, unsigned int crc)
+static unsigned long crc_0x04C11DB7(const unsigned char* data, unsigned long len, unsigned long crc)
 {
     // x^32 + x^26 + x^23 + x^22 + x^16 + x^12 + x^11 + x^10 +
     //    x^8 + x^7 + x^5 + x^4 + x^2 + x^1 + x^0  (0x04C11DB7)
@@ -344,7 +376,7 @@ static unsigned int crc_0x04C11DB7(const unsigned char* data, unsigned int len, 
     return crc;
 }
 
-static unsigned int crc_0x04C11DB7_r(const unsigned char* data, unsigned int len, unsigned int crc)
+static unsigned long crc_0x04C11DB7_r(const unsigned char* data, unsigned long len, unsigned long crc)
 {
     // x^32 + x^26 + x^23 + x^22 + x^16 + x^12 + x^11 + x^10 +
     //    x^8 + x^7 + x^5 + x^4 + x^2 + x^1 + x^0  (0x04C11DB7)
@@ -419,7 +451,7 @@ static unsigned int crc_0x04C11DB7_r(const unsigned char* data, unsigned int len
     return crc;
 }
 
-static unsigned int adler32(const unsigned char* data, unsigned int len, unsigned int init)
+static unsigned long adler32(const unsigned char* data, unsigned long len, unsigned long init)
 {
     unsigned int a = init & 0xFFFF;
     unsigned int b = (init >> 16) & 0xFFFF;
@@ -440,7 +472,7 @@ static unsigned int adler32(const unsigned char* data, unsigned int len, unsigne
    return b << 16 | a;
 }
 
-static unsigned int hexsum(const unsigned char* data, unsigned int len, unsigned int sum)
+static unsigned long hexsum(const unsigned char* data, unsigned long len, unsigned long sum)
 {
     // Add all hex digits, ignore all other bytes.
     unsigned int d; 
@@ -491,7 +523,8 @@ static checksum checksumMap[] =
     {"crc32r",  crc_0x04C11DB7_r, 0xFFFFFFFF, 0xFFFFFFFF, 4}, // 0xCBF43926
     {"jamcrc",  crc_0x04C11DB7_r, 0xFFFFFFFF, 0x00000000, 4}, // 0x340BC6D9
     {"adler32", adler32,          0x00000001, 0x00000000, 4}, // 0x091E01DE
-    {"hexsum8", hexsum,           0x00,       0x00,       1}  // 0x2D
+    {"hexsum8", hexsum,           0x00,       0x00,       1}, // 0x2D
+    {"cryo",    sum_cryo,         0x00,       0x00,       1}  // 0x2D
 };
 
 static unsigned int mask[5] = {0, 0xFF, 0xFFFF, 0xFFFFFF, 0xFFFFFFFF};
