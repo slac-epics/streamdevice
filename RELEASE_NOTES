@@ -1,3 +1,6 @@
+R2.7.7-1.1:   14-March-2017, J.Mock (jmock)
+    Release against asyn R4.30-1.1.2, calc-R3-1_1-0, and sscan-R2-8-1_1-0
+
 R2.7.7-1.0:   31-Jan-2017, H. Slepicka (slepicka)
     Applied patch <>/patches/0001-adding_calc_and_sscan.patch
         Add support for CALC and SSCAN modules

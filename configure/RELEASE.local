@@ -19,9 +19,9 @@
 # Don't set your version to anything such as "test" that
 # could match a directory name.
 # ==========================================================
-ASYN_MODULE_VERSION=R4.30-1.1.1
-CALC_MODULE_VERSION=R3.3-0.1.1
-SSCAN_MODULE_VERSION=R2.9-1.2.0
+ASYN_MODULE_VERSION=R4.30-1.1.2
+CALC_MODULE_VERSION=calc-R3-1_1-0/
+SSCAN_MODULE_VERSION=sscan-R2-8-1_1-0/
 
 # ==========================================================
 # Define module paths using pattern
