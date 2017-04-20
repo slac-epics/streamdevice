@@ -1,2 +1,5 @@
+R2.7.7-0.2:   20-Apr-2017, H. Slepicka (slepicka)
+    Bumping Asyn version to R4.31-0.1.0
+
 R2.7.7-0.1:   31-Jan-2017, H. Slepicka (slepicka)
     First version of streamdevice working with the new Git Workflow.
