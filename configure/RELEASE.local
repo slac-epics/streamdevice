@@ -21,7 +21,7 @@
 # ==========================================================
 ASYN_MODULE_VERSION=R4.31-0.1.0
 CALC_MODULE_VERSION=R3.6.1-0.1.0
-SSCAN_MODULE_VERSION=R2.10.2-0.1.0
+SSCAN_MODULE_VERSION=R2.10.2-1.0.0
 
 # ==========================================================
 # Define module paths using pattern
