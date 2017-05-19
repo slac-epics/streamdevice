@@ -29,5 +29,24 @@
 #INSTALL_LOCATION=<fullpathname>
 
 # Add for cram, static build required for soft iocs
-SHARED_LIBRARIES=NO
 STATIC_BUILD=YES
+SHARED_LIBRARIES=NO
+
+# Might as well build shared libs too where we can support them
+ifeq ($(T_A),linux-x86_64)
+SHARED_LIBRARIES=YES
+endif
+ifeq ($(T_A),rhel6-x86_64)
+SHARED_LIBRARIES=YES
+endif
+ifeq ($(T_A),rhel7-x86_64)
+SHARED_LIBRARIES=YES
+endif
+
+# Add PCRE support if we have it for this T_A
+PCRE_TOP     := $(PSPKG_ROOT)/release/pcre/8.37/$(T_A)/
+ifneq (,$(wildcard $(PCRE_TOP)))
+PCRE_INCLUDE := $(PCRE_TOP)/include
+PCRE_LIB     := $(PCRE_TOP)/lib
+LIB_INSTALLS += $(wildcard $(PCRE_LIB)/lib*)
+endif

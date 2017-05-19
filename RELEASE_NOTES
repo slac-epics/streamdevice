@@ -1,3 +1,7 @@
+R2.7.7-1.4.1: 18-May-2017, B. Hill (bhill)
+	Simplified PCRE build support and got PCRE working for rhel5 and rhel7
+	Also fixed LIB_INSTALLS of pcre libs so ioc doesn't need to provide a matching pcre lib.
+
 R2.7.7-1.4:   15-May-2017, B. Hill (bhill)
 	Build w/ asyn/R4.31-1.0.0
 
