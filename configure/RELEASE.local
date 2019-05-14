@@ -20,8 +20,8 @@
 # could match a directory name.
 # ==========================================================
 ASYN_MODULE_VERSION=R4.31-0.1.0
-#CALC_MODULE_VERSION=R3.3-0.1.1
-#SSCAN_MODULE_VERSION=R2.9-1.2.0
+CALC_MODULE_VERSION=R3.7-1.0.0
+SSCAN_MODULE_VERSION=R2.10.2-1.0.0
 
 # ==========================================================
 # Define module paths using pattern

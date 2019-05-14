@@ -23,9 +23,13 @@
 #include <stdarg.h>
 #include <stddef.h>
 
+#include "messageEngine.h"
+
 #ifndef __GNUC__
 #define __attribute__(x)
 #endif
+
+extern StreamErrorEngine* pErrEngine;
 
 extern int streamDebug;
 extern void (*StreamPrintTimestampFunction)(char* buffer, int size);
@@ -33,15 +37,28 @@ extern void (*StreamPrintTimestampFunction)(char* buffer, int size);
 void StreamError(int line, const char* file, const char* fmt, ...)
 __attribute__ ((format(printf,3,4)));
 
-void StreamVError(int line, const char* file, const char* fmt, va_list args)
-__attribute__ ((format(printf,3,0)));
-
 void StreamError(const char* fmt, ...)
 __attribute__ ((format(printf,1,2)));
 
+// Need to place a useless bool parameter to avoid overload ambiguity
+void StreamError(bool useless, int line, const char* file,
+                 ErrorCategory category,
+                 const char* fmt, ...)
+__attribute__ ((format(printf,5,6)));
+
+// Need to place a useless bool parameter to avoid overload ambiguity
+void StreamError(bool useless, ErrorCategory category, 
+                 const char* fmt, ...)
+__attribute__ ((format(printf,3,4)));
+
+void StreamVError(int line, const char* file, 
+                  ErrorCategory category, 
+                  const char* fmt, va_list args)
+__attribute__ ((format(printf,4,0)));
+
 inline void StreamVError(const char* fmt, va_list args)
 {
-    StreamVError(0, NULL, fmt, args); 
+    StreamVError(0, NULL, CAT_NONE, fmt, args); 
 }
 
 class StreamDebugClass

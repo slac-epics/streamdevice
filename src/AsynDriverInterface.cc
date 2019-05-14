@@ -505,7 +505,7 @@ lockRequest(unsigned long lockTimeout_ms)
         priority(), lockTimeout);
     if (status != asynSuccess)
     {
-        error("%s lockRequest: pasynManager->queueRequest() failed: %s\n",
+        error(true, CAT_ASYN_CONNECTION, "%s lockRequest: pasynManager->queueRequest() failed: %s\n",
             clientName(), pasynUser->errorMessage);
         return false;
     }
@@ -779,18 +779,18 @@ writeHandler()
             writeCallback(StreamIoFault);
             return;
         case asynError:
-            error("%s: asynError in write. Asyn driver says: %s\n",
+            error(true, CAT_ASYN_WRITE, "%s: asynError in write. Asyn driver says: %s\n",
                 clientName(), pasynUser->errorMessage);
             writeCallback(StreamIoFault);
             return;
 #ifdef ASYN_VERSION // asyn >= 4.14
         case asynDisconnected:
-            error("%s: asynDisconnected in write. Asyn driver says: %s\n",
+            error(true, CAT_ASYN_WRITE, "%s: asynDisconnected in write. Asyn driver says: %s\n",
                 clientName(), pasynUser->errorMessage);
             writeCallback(StreamIoFault);
             return;
         case asynDisabled:
-            error("%s: asynDisconnected in write. Asyn driver says: %s\n",
+            error(true, CAT_ASYN_WRITE, "%s: asynDisconnected in write. Asyn driver says: %s\n",
                 clientName(), pasynUser->errorMessage);
             writeCallback(StreamIoFault);
             return;
@@ -1099,18 +1099,18 @@ readHandler()
                 readCallback(StreamIoFault, buffer, received);
                 break;
             case asynError:
-                error("%s: asynError in read. Asyn driver says: %s\n",
+                error(true, CAT_ASYN_READ,"%s: asynError in read. Asyn driver says: %s\n",
                     clientName(), pasynUser->errorMessage);
                 readCallback(StreamIoFault, buffer, received);
                 break;
 #ifdef ASYN_VERSION // asyn >= 4.14
             case asynDisconnected:
-                error("%s: asynDisconnected in read. Asyn driver says: %s\n",
+                error(true, CAT_ASYN_READ, "%s: asynDisconnected in read. Asyn driver says: %s\n",
                     clientName(), pasynUser->errorMessage);
                 readCallback(StreamIoFault);
                 return;
             case asynDisabled:
-                error("%s: asynDisconnected in read. Asyn driver says: %s\n",
+                error(true, CAT_ASYN_READ, "%s: asynDisconnected in read. Asyn driver says: %s\n",
                     clientName(), pasynUser->errorMessage);
                 readCallback(StreamIoFault);
                 return;
@@ -1410,7 +1410,7 @@ connectRequest(unsigned long connecttimeout_ms)
         asynQueuePriorityConnect, queueTimeout);
     if (status != asynSuccess)
     {
-        error("%s connectRequest: pasynManager->queueRequest() failed: %s\n",
+        error(true, CAT_ASYN_CONNECTION, "%s connectRequest: pasynManager->queueRequest() failed: %s\n",
             clientName(), pasynUser->errorMessage);
         return false;
     }

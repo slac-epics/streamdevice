@@ -694,10 +694,10 @@ normal_format:
                 {
                     StreamBuffer formatstr(formatstring, formatstringlen);
                     if (fieldAddress)
-                        error("%s: Cannot format field '%s' with '%%%s'\n",
+                        error(true, CAT_PROTO_FORMAT, "%s: Cannot format field '%s' with '%%%s'\n",
                             name(), fieldName, formatstr.expand()());
                     else
-                        error("%s: Cannot format value with '%%%s'\n",
+                        error(true, CAT_PROTO_FORMAT, "%s: Cannot format value with '%%%s'\n",
                             name(), formatstr.expand()());
                     return false;
                 }
@@ -751,7 +751,7 @@ printValue(const StreamFormat& fmt, long value)
 {
     if (fmt.type != unsigned_format && fmt.type != signed_format && fmt.type != enum_format)
     {
-        error("%s: printValue(long) called with %%%c format\n",
+        error(true, CAT_PROTO_FORMAT, "%s: printValue(long) called with %%%c format\n",
             name(), fmt.conv);
         return false;
     }
@@ -759,7 +759,7 @@ printValue(const StreamFormat& fmt, long value)
     if (!StreamFormatConverter::find(fmt.conv)->
         printLong(fmt, outputLine, value))
     {
-        error("%s: Formatting value %li failed\n",
+        error(true, CAT_PROTO_FORMAT, "%s: Formatting value %li failed\n",
             name(), value);
         return false;
     }
@@ -773,7 +773,7 @@ printValue(const StreamFormat& fmt, double value)
 {
     if (fmt.type != double_format)
     {
-        error("%s: printValue(double) called with %%%c format\n",
+        error(true, CAT_PROTO_FORMAT, "%s: printValue(double) called with %%%c format\n",
             name(), fmt.conv);
         return false;
     }
@@ -781,7 +781,7 @@ printValue(const StreamFormat& fmt, double value)
     if (!StreamFormatConverter::find(fmt.conv)->
         printDouble(fmt, outputLine, value))
     {
-        error("%s: Formatting value %#g failed\n",
+        error(true, CAT_PROTO_FORMAT, "%s: Formatting value %#g failed\n",
             name(), value);
         return false;
     }
@@ -795,7 +795,7 @@ printValue(const StreamFormat& fmt, char* value)
 {
     if (fmt.type != string_format)
     {
-        error("%s: printValue(char*) called with %%%c format\n",
+        error(true, CAT_PROTO_FORMAT, "%s: printValue(char*) called with %%%c format\n",
             name(), fmt.conv);
         return false;
     }
@@ -804,7 +804,7 @@ printValue(const StreamFormat& fmt, char* value)
         printString(fmt, outputLine, value))
     {
         StreamBuffer buffer(value);
-        error("%s: Formatting value \"%s\" failed\n",
+        error(true, CAT_PROTO_FORMAT, "%s: Formatting value \"%s\" failed\n",
             name(), buffer.expand()());
         return false;
     }
@@ -1109,7 +1109,7 @@ readCallback(StreamIoStatus status,
         }
         else
         {
-            error("%s: Timeout after reading %ld byte%s \"%s%s\"\n",
+            error(true, CAT_READ_TIMEOUT, "%s: Timeout after reading %ld byte%s \"%s%s\"\n",
                 name(), end, end==1 ? "" : "s", end > 20 ? "..." : "",
                 inputBuffer.expand(-20)());
         }
@@ -1250,7 +1250,7 @@ normal_format:
                         {
                             if (!(flags & AsyncMode) && onMismatch[0] != in_cmd)
                             {
-                                error("%s: Input \"%s%s\" does not match format \"%%%s\"\n",
+                                error(true, CAT_PROTO_FORMAT, "%s: Input \"%s%s\" does not match format \"%%%s\"\n",
                                     name(), inputLine.expand(consumedInput, 20)(),
                                     inputLine.length()-consumedInput > 20 ? "..." : "",
                                     formatstring());
@@ -1268,10 +1268,10 @@ normal_format:
                     if (!formatValue(fmt, fieldAddress ? fieldAddress() : NULL))
                     {
                         if (fieldAddress)
-                            error("%s: Cannot format variable \"%s\" with \"%%%s\"\n",
+                            error(true, CAT_PROTO_FORMAT, "%s: Cannot format variable \"%s\" with \"%%%s\"\n",
                                 name(), fieldName, formatstring());
                         else
-                            error("%s: Cannot format value with \"%%%s\"\n",
+                            error(true, CAT_PROTO_FORMAT, "%s: Cannot format value with \"%%%s\"\n",
                                 name(), formatstring());
                         return false;
                     }
@@ -1284,7 +1284,7 @@ normal_format:
                     {
                         if (!(flags & AsyncMode) && onMismatch[0] != in_cmd)
                         {
-                            error("%s: Input \"%s%s\" too short."
+                            error(true, CAT_PROTO_FORMAT, "%s: Input \"%s%s\" too short."
                                   " No match for format \"%%%s\" (\"%s\")\n",
                                 name(), 
                                 inputLine.length() > 20 ? "..." : "",
@@ -1298,7 +1298,7 @@ normal_format:
                     {
                         if (!(flags & AsyncMode) && onMismatch[0] != in_cmd)
                         {
-                            error("%s: Input \"%s%s\" does not match format \"%%%s\" (\"%s\")\n",
+                            error(true, CAT_PROTO_FORMAT, "%s: Input \"%s%s\" does not match format \"%%%s\" (\"%s\")\n",
                                 name(), inputLine.expand(consumedInput, 20)(),
                                 inputLine.length()-consumedInput > 20 ? "..." : "",
                                 formatstring(),
@@ -1315,12 +1315,12 @@ normal_format:
                     if (!(flags & AsyncMode) && onMismatch[0] != in_cmd)
                     {
                         if (flags & ScanTried)
-                            error("%s: Input \"%s%s\" does not match format \"%%%s\"\n",
+                            error(true, CAT_PROTO_FORMAT, "%s: Input \"%s%s\" does not match format \"%%%s\"\n",
                                 name(), inputLine.expand(consumedInput, 20)(),
                                 inputLine.length()-consumedInput > 20 ? "..." : "",
                                 formatstring());
                         else
-                            error("%s: Format \"%%%s\" has data type %s which does not match the type of \"%s\".\n",
+                            error(true, CAT_PROTO_FORMAT, "%s: Format \"%%%s\" has data type %s which does not match the type of \"%s\".\n",
                                 name(), formatstring(), StreamFormatTypeStr[fmt.type], fieldAddress ? fieldName : name());
                     }
                     return false;
@@ -1347,12 +1347,12 @@ normal_format:
                     while (commandIndex[i] >= ' ') i++;
                     if (!(flags & AsyncMode) && onMismatch[0] != in_cmd)
                     {
-                        error("%s: Input \"%s%s\" too short.\n",
+                        error(true, CAT_PROTO_FORMAT, "%s: Input \"%s%s\" too short.\n",
                             name(), 
                             inputLine.length() > 20 ? "..." : "",
                             inputLine.expand(-20)());
 #ifndef NO_TEMPORARY
-                        error("No match for \"%s\"\n",
+                        error(true, CAT_PROTO_FORMAT, "No match for \"%s\"\n",
                             StreamBuffer(commandIndex-1,i+1).expand()());
 #endif
                     }
@@ -1364,7 +1364,7 @@ normal_format:
                     {
                         int i = 0;
                         while (commandIndex[i] >= ' ') i++;
-                        error("%s: Input \"%s%s\" mismatch after %ld byte%s\n",
+                        error(true, CAT_PROTO_FORMAT, "%s: Input \"%s%s\" mismatch after %ld byte%s\n",
                             name(),
                             consumedInput > 10 ? "..." : "",
                             inputLine.expand(consumedInput > 10 ?
@@ -1373,7 +1373,7 @@ normal_format:
                             consumedInput==1 ? "" : "s");
 
 #ifndef NO_TEMPORARY
-                        error("%s: got \"%s\" where \"%s\" was expected\n",
+                        error(true, CAT_PROTO_FORMAT, "%s: got \"%s\" where \"%s\" was expected\n",
                             name(),
                             inputLine.expand(consumedInput, 20)(),
                             StreamBuffer(commandIndex-1,i+1).expand()());
@@ -1389,18 +1389,18 @@ normal_format:
     {
         if (!(flags & AsyncMode) && onMismatch[0] != in_cmd)
         {
-            error("%s: %ld byte%s surplus input \"%s%s\"\n",
+            error(true, CAT_PROTO_FORMAT, "%s: %ld byte%s surplus input \"%s%s\"\n",
                 name(), surplus, surplus==1 ? "" : "s",
                 inputLine.expand(consumedInput, 20)(),
                 surplus > 20 ? "..." : "");
                 
             if (consumedInput>20)
-                error("%s: after %ld byte%s \"...%s\"\n",
+                error(true, CAT_PROTO_FORMAT, "%s: after %ld byte%s \"...%s\"\n",
                     name(), consumedInput,
                     consumedInput==1 ? "" : "s",
                     inputLine.expand(consumedInput-20, 20)());
             else
-                error("%s: after %ld byte%s: \"%s\"\n",
+                error(true, CAT_PROTO_FORMAT, "%s: after %ld byte%s: \"%s\"\n",
                     name(), consumedInput,
                     consumedInput==1 ? "" : "s",
                     inputLine.expand(0, consumedInput)());
@@ -1460,7 +1460,7 @@ scanValue(const StreamFormat& fmt, long& value)
 {
     if (fmt.type != unsigned_format && fmt.type != signed_format && fmt.type != enum_format)
     {
-        error("%s: scanValue(long&) called with %%%c format\n",
+        error(true, CAT_PROTO_FORMAT, "%s: scanValue(long&) called with %%%c format\n",
             name(), fmt.conv);
         return -1;
     }
@@ -1492,7 +1492,7 @@ scanValue(const StreamFormat& fmt, double& value)
 {
     if (fmt.type != double_format)
     {
-        error("%s: scanValue(double&) called with %%%c format\n",
+        error(true, CAT_PROTO_FORMAT, "%s: scanValue(double&) called with %%%c format\n",
             name(), fmt.conv);
         return -1;
     }
@@ -1524,7 +1524,7 @@ scanValue(const StreamFormat& fmt, char* value, long maxlen)
 {
     if (fmt.type != string_format)
     {
-        error("%s: scanValue(char*) called with %%%c format\n",
+        error(true, CAT_PROTO_FORMAT, "%s: scanValue(char*) called with %%%c format\n",
             name(), fmt.conv);
         return -1;
     }
@@ -1613,7 +1613,7 @@ eventCallback(StreamIoStatus status)
     switch (status)
     {
         case StreamIoTimeout:
-            error("%s: No event from device\n", name());
+            error(true, CAT_IO_TIMEOUT, "%s: No event from device\n", name());
             finishProtocol(ReplyTimeout);
             return;
         case StreamIoSuccess:
