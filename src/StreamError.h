@@ -26,29 +26,53 @@
 #include <stdarg.h>
 #include <stddef.h>
 
+#include "messageEngine.h"
+
 #ifndef __GNUC__
 #define __attribute__(x)
 #endif
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+extern StreamErrorEngine* pErrEngine;
 
 extern int streamDebug;
 extern int streamError;
 extern int streamDebugColored;
 extern int streamMsgTimeStamped;
+#ifdef __cplusplus
+}
+#endif
+
 extern void (*StreamPrintTimestampFunction)(char* buffer, size_t size);
 extern const char* (*StreamGetThreadNameFunction)(void);
 
 void StreamError(int line, const char* file, const char* fmt, ...)
 __attribute__((__format__(__printf__,3,4)));
 
-void StreamVError(int line, const char* file, const char* fmt, va_list args)
-__attribute__((__format__(__printf__,3,0)));
+void StreamVError(int line, const char* file,
+                  ErrorCategory category,
+                  const char* fmt, va_list args)
+__attribute__((__format__(__printf__,4,0)));
 
 void StreamError(const char* fmt, ...)
 __attribute__((__format__(__printf__,1,2)));
 
+// Need to place a useless bool parameter to avoid overload ambiguity
+void StreamError(bool useless, int line, const char* file,
+                 ErrorCategory category,
+                 const char* fmt, ...)
+__attribute__ ((format(printf,5,6)));
+
+// Need to place a useless bool parameter to avoid overload ambiguity
+void StreamError(bool useless, ErrorCategory category, 
+                 const char* fmt, ...)
+__attribute__ ((format(printf,3,4)));
+
 inline void StreamVError(const char* fmt, va_list args)
 {
-    StreamVError(0, NULL, fmt, args);
+    StreamVError(0, NULL, CAT_NONE, fmt, args); 
 }
 
 class StreamDebugClass
