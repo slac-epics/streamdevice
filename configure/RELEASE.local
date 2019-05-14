@@ -19,15 +19,12 @@
 # Don't set your version to anything such as "test" that
 # could match a directory name.
 # ==========================================================
-<<<<<<< HEAD
 ASYN_MODULE_VERSION=R4.31-0.1.0
 CALC_MODULE_VERSION=R3.7-1.0.0
 SSCAN_MODULE_VERSION=R2.10.2-1.0.0
-=======
 ASYN_MODULE_VERSION=R4.30-1.1.1
 #CALC_MODULE_VERSION=R3.3-0.1.1
 #SSCAN_MODULE_VERSION=R2.9-1.2.0
->>>>>>> 9c5c9fd... Basic changes needed to work and compile under the new Git Workflow.
 
 # ==========================================================
 # Define module paths using pattern

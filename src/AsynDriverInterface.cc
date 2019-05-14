@@ -555,6 +555,8 @@ lockRequest(unsigned long lockTimeout_ms)
     if (status != asynSuccess)
     {
         ioAction = None;
+        error(true, CAT_ASYN_CONNECTION, "%s lockRequest: pasynManager->queueRequest() failed: %s\n",
+            clientName(), pasynUser->errorMessage);
         return false;
     }
     return true;
@@ -766,13 +768,13 @@ writeHandler()
         case asynError:
             if (!connected)
             {
-                error("%s: device %s disconnected\n",
+                error(true, CAT_ASYN_WRITE, "%s: device %s disconnected\n",
                     clientName(), name());
                 disconnectCallback();
             }
             else
             {
-                error("%s: asynError in write: %s\n",
+                error(true, CAT_ASYN_WRITE, "%s: asynError in write: %s\n",
                     clientName(), pasynUser->errorMessage);
                 writeCallback(StreamIoFault);
             }
@@ -784,7 +786,7 @@ writeHandler()
             disconnectCallback();
             return;
         case asynDisabled:
-            error("%s: asynDisabled in write: %s\n",
+            error(true, CAT_ASYN_WRITE, "%s: asynDisabled in write: %s\n",
                 clientName(), pasynUser->errorMessage);
             writeCallback(StreamIoFault);
             return;
@@ -1085,26 +1087,26 @@ readHandler()
                 break;
             case asynError:
                 if (!connected) {
-                    error("%s: device %s disconnected\n",
+                    error(true, CAT_ASYN_READ,"%s: device %s disconnected\n",
                         clientName(), name());
                         disconnectCallback();
                 }
                 else
                 {
-                    error("%s: asynError in read: %s\n",
+                    error(true, CAT_ASYN_READ,"%s: asynError in read: %s\n",
                         clientName(), pasynUser->errorMessage);
                     readCallback(StreamIoFault, buffer, received);
                 }
                 break;
 #ifdef ASYN_VERSION // asyn >= 4.14
             case asynDisconnected:
-                error("%s: asynDisconnected in read: %s\n",
+                error(true, CAT_ASYN_READ,"%s: asynDisconnected in read: %s\n",
                     clientName(), pasynUser->errorMessage);
                 connected = false;
                 disconnectCallback();
                 return;
             case asynDisabled:
-                error("%s: asynDisabled in read: %s\n",
+                error(true, CAT_ASYN_READ, "%s: asynDisabled in read: %s\n",
                     clientName(), pasynUser->errorMessage);
                 readCallback(StreamIoFault);
                 return;
@@ -1416,11 +1418,17 @@ connectRequest(unsigned long connecttimeout_ms)
         clientName());
     status = pasynManager->queueRequest(pasynUser,
         asynQueuePriorityConnect, queueTimeout);
+    if (status != asynSuccess)
+    {
+        error(true, CAT_ASYN_CONNECTION, "%s connectRequest: pasynManager->queueRequest() failed: %s\n",
+            clientName(), pasynUser->errorMessage);
+        return false;
+    }
     reportAsynStatus(status, "connectRequest");
-    return (status == asynSuccess);
     // continues with:
     //    handleRequest() -> connectHandler() -> connectCallback()
     // or handleTimeout() -> connectCallback(StreamIoTimeout)
+    return (status == asynSuccess);
 }
 
 void AsynDriverInterface::
@@ -1440,9 +1448,9 @@ disconnectRequest()
     status = pasynManager->queueRequest(pasynUser,
         asynQueuePriorityConnect, 0.0);
     reportAsynStatus(status, "disconnectRequest");
-    return (status == asynSuccess);
     // continues with:
     //    handleRequest() -> disconnectHandler()
+    return (status == asynSuccess);
 }
 
 void AsynDriverInterface::
