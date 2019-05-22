@@ -498,7 +498,7 @@ long streamReadWrite(dbCommon *record)
     if (!pstream || pstream->status == ERROR)
     {
         (void) recGblSetSevr(record, UDF_ALARM, INVALID_ALARM);
-        error("%s: Record not initialised correctly\n", record->name);
+        error(true, CAT_PROTO_FORMAT, "%s: Record not initialised correctly\n", record->name);
         return ERROR;
     }
     return pstream->process() ? pstream->convert : ERROR;
