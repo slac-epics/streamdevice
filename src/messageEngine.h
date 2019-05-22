@@ -1,5 +1,5 @@
-#ifndef testMarcio_h
-#define testMarcio_h
+#ifndef messageEngine_h
+#define messageEngine_h
 
 #include <string>
 #include <time.h>
@@ -36,23 +36,19 @@ private:
     struct errorData_t categories[TOTAL_CATEGORIES];
     int timeout; // in seconds
     pthread_t thread_id;
-
-    //~StreamErrorEngine();
+    bool stopThread;
 public:
     StreamErrorEngine();
+    ~StreamErrorEngine();
     void setTimeout(int tmout);
     int getTimeout();
     errorData_t* errorDataFrom(ErrorCategory category); 
     void callError(ErrorCategory category, char* message);
+    bool mustStop();
 };
-//TODO: stop engine
-//TODO: destructors
-//TODO: name categories
 
 // Wrappers for C functions because we don't have C++11
 StreamErrorEngine* createEngine(pthread_t thread_id);
 void *engineJob(void* engineObj);
 
 #endif
-
-// run :shell, issue kinit and aklog and exit shell

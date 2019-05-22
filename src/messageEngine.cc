@@ -1,4 +1,3 @@
-//#include <pthread.h>
 #include <unistd.h>
 #include <stdio.h>
 #include <cstring>
@@ -12,7 +11,6 @@ StreamErrorEngine* createEngine(pthread_t thread_id)
     StreamErrorEngine* newEngine = new StreamErrorEngine;
     pthread_create(&thread_id, NULL, engineJob, 
                    reinterpret_cast<void *>(newEngine));
-    //printf("newEngine = %d\n", newEngine);
     return newEngine;
 }
 
@@ -23,9 +21,15 @@ void *engineJob(void* engineObj)
 
     StreamErrorEngine* engine = reinterpret_cast<StreamErrorEngine*>(engineObj);
     errorData_t* errData;
-//printf("dentro do engineJob\n");
+    
     while(1) 
-    {//printf("dentro do engineJob %d\n", engine);
+    {   
+        if (engine->mustStop())
+        {
+            // Time to finish the thread
+            pthread_exit(0);
+        }
+
         // Loop through all error categories
         for(iii=0; iii<TOTAL_CATEGORIES; ++iii) 
         {
@@ -78,6 +82,8 @@ void *engineJob(void* engineObj)
 
 StreamErrorEngine::StreamErrorEngine()
 {
+    stopThread = false;
+
     for (int iii=0; iii<TOTAL_CATEGORIES; ++iii)
     {
         categories[iii].waitingTimeout = 0;
@@ -88,13 +94,28 @@ StreamErrorEngine::StreamErrorEngine()
     }
 }
 
+StreamErrorEngine::~StreamErrorEngine()
+{
+    // Order message engine thread to stop
+    stopThread = true;
+
+    // Wait for thread to stop
+    pthread_join(thread_id, NULL);
+
+    // Cleanup
+    for (int iii=0; iii<TOTAL_CATEGORIES; ++iii)
+    {
+        pthread_mutex_destroy(&categories[iii].mutex);
+    }
+}
+
 void StreamErrorEngine::callError(ErrorCategory category, char* message)
 {
     if (category < 0 || category > TOTAL_CATEGORIES)
     {
         return;
     }
-
+    
     // Using errData variable is easier to read than categories[category] 
     errorData_t* errData = &categories[category];
     
@@ -120,6 +141,8 @@ void StreamErrorEngine::callError(ErrorCategory category, char* message)
         strcpy(errData->lastErrorMessage, message);
         // Starting time to detect a future timeout
         errData->lastPrintTime = time(NULL);
+        // Restart message counter
+        errData->numberOfCalls = 0;
     }
     
     // Release lock
@@ -148,3 +171,7 @@ errorData_t* StreamErrorEngine::errorDataFrom(ErrorCategory category)
     }
 }
 
+bool StreamErrorEngine::mustStop()
+{
+    return stopThread;
+}
