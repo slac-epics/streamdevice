@@ -1,0 +1,8 @@
+The SLAC internal changes for Stream Device were made in order to provide a message engine thread that controls when a message should be print to the IOC console. The goal is to reduce the number of messages that are output to not flood the log system.
+
+To activate the message engine, issue the IOC console command streamMessageTimeout with the number of seconds that the engine should hold before printing a message. For example, after a 5 seconds timeout is defined, the output will be similar to:
+
+Stream Device: this message was received 15 times in the last 5 seconds:
+2019/05/22 14:28:55.814444 scan-1 SXR:GMD:ETM:01:Reading lockRequest: pasynManager->queueRequest() failed: port S1 not connected
+
+To deactivate the engine, pass 0 to streamMessageTimeout.
