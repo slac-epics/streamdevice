@@ -133,7 +133,7 @@ void StreamVError(int line, const char* file,
     snprintf(buffer2, sizeof(buffer2), "%s%s\033[0m", buffer1, bufferAux);
 
     if (category == CAT_NONE || pErrEngine == NULL || 
-                    pErrEngine->getTimeout() == 0)
+                    pErrEngine->getTimeout() <= 0)
     {
         // We don't want to use the message engine
         fprintf(stderr, buffer2);
