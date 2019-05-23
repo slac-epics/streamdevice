@@ -1,3 +1,9 @@
+R2.7.7-2.1.0: 23-May-2019, M. Donadio (marcio)
+    - Added case when protocol file has syntax error.
+    - Cleanup of printf and implementation of the destructor.
+    - Case for when the user register a negative timeout.
+    - Added README related to SLAC changes.
+
 R2.7.7-2.0.0: 14-May-2019, M. Donadio (marcio)
     Support for a message engine that receives messages and decide when to
     print it to the IOC shell based on a configurable timeout in seconds. The
