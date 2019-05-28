@@ -24,6 +24,8 @@
 #include <stdlib.h>
 #include <sys/types.h>
 
+#include <sys/types.h>
+
 #ifndef __GNUC__
 #define __attribute__(x)
 #endif

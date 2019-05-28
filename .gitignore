@@ -2,6 +2,7 @@ O.*
 *~
 bin
 lib
+db
 dbd
 include
 *.pdf
