@@ -2,7 +2,9 @@ O.*
 *~
 bin
 lib
+db
 dbd
 include
 *.pdf
 *.*log
+RELEASE_SITE
