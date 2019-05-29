@@ -2,9 +2,11 @@ O.*
 *~
 bin
 lib
+db
 dbd
 include
 *.pdf
 *.*log
 StreamVersion.h
 *.local
+RELEASE_SITE
