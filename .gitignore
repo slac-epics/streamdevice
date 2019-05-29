@@ -6,3 +6,5 @@ dbd
 include
 *.pdf
 *.*log
+db
+RELEASE_SITE
