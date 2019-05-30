@@ -1,3 +1,10 @@
+R2.8.9-1.0.0  Marcio Donadio - May/30/2019
+            - Streamdevice 2.8.9 with support for a message engine that
+              receives messages and decide when to print it to the IOC shell
+              based on a configurable timeout in seconds. The engine has a
+              polling time of 1 second.
+            - Added case for the message engine.
+
 R2.8.9-0.1.0  Marcio Donadio - May/29/2019
             - Streamdevice 2.8.9 working with the new Git Workflow.
 
