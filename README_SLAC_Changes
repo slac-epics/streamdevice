@@ -6,3 +6,5 @@ Stream Device: this message was received 15 times in the last 5 seconds:
 2019/05/22 14:28:55.814444 scan-1 SXR:GMD:ETM:01:Reading lockRequest: pasynManager->queueRequest() failed: port S1 not connected
 
 To deactivate the engine, pass 0 to streamMessageTimeout.
+
+Attention! This version of Stream Device requires a variable to be set in order to start the message printing on the IOC console. Issue "var streamError 1" to start seeing the messages. If this is not done, the error message will be print only once. This is a new feature from the community, not an internal SLAC change.
