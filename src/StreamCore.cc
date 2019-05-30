@@ -1358,7 +1358,7 @@ normal_format:
                             inputLine.expand(consumedInput > 10 ? consumedInput-10 : 0,
                                 consumedInput > 10 ? 10 : consumedInput)());
                         
-                        error("%s: got \"%s%s\" where \"%s\" was expected\n",
+                        error(true, CAT_PROTO_FORMAT, "%s: got \"%s%s\" where \"%s\" was expected\n",
                             name(),
                             inputLine.expand(consumedInput, 10)(),
                             inputLine.length() - consumedInput > 10 ? "..." : "",
