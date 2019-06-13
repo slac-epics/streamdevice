@@ -43,8 +43,10 @@ ifneq ($(words $(CALC) $(SYNAPPS)), 0)
 streamApp_DBD += calcSupport.dbd
 streamApp_DBD += streamSynApps.dbd
 PROD_LIBS += calc
+ifdef SSCAN
 # older calc versions require sscan
 PROD_LIBS += sscan
+endif
 PROD_LIBS_DEFAULT += streamSynApps
 endif
 
