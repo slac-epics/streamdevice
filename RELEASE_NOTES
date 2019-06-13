@@ -1,3 +1,6 @@
+R2.7.7-1.4.5: 2019-06-12 Bruce Hill
+	Update to asyn/R4.35-0.0.1
+
 R2.7.7-1.4.4: 2019-06-12 Bruce Hill
 	Build w/ calc/R3.7-1.0.1 and no sscan
 
