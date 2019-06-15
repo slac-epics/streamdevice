@@ -1,3 +1,6 @@
+R2.8.9-1.0.1  2019-06-14 Bruce Hill
+	Add #include epicsStdio.h in StreamEpics.cc so I/O redirect works for report.
+
 R2.8.9-1.0.0  Marcio Donadio - May/30/2019
             - Streamdevice 2.8.9 with support for a message engine that
               receives messages and decide when to print it to the IOC shell
