@@ -59,6 +59,7 @@ extern DBBASE *pdbbase;
 #include "epicsTimer.h"
 #include "epicsMutex.h"
 #include "epicsEvent.h"
+#include <epicsStdio.h>
 #include "epicsTime.h"
 #include "epicsThread.h"
 #include "epicsString.h"
