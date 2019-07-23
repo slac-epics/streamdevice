@@ -1,3 +1,7 @@
+R2.8.9-1.0.2  Jul/22/2019 - Marcio Donadio (marcio)
+    - Downgraded Asyn to R4.31-0.1.0 as this is the version used by the 
+      ATCA-based common platform modules.
+
 R2.8.9-1.0.1  2019-06-14 Bruce Hill
 	Add #include epicsStdio.h in StreamEpics.cc so I/O redirect works for report.
 
