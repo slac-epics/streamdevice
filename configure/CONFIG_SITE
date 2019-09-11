@@ -31,3 +31,14 @@
 # Add for cram, static build required for soft iocs
 SHARED_LIBRARIES=NO
 STATIC_BUILD=YES
+
+# Might as well build shared libs too where we can support them
+ifeq ($(T_A),linux-x86_64)
+SHARED_LIBRARIES=YES
+endif
+ifeq ($(T_A),rhel6-x86_64)
+SHARED_LIBRARIES=YES
+endif
+ifeq ($(T_A),rhel7-x86_64)
+SHARED_LIBRARIES=YES
+endif

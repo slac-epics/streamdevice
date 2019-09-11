@@ -2,4 +2,4 @@ PCRE_TOP := $(PSPKG_ROOT)/release/pcre/8.37/$(T_A)/
 PCRE_INCLUDE := $(PCRE_TOP)/include
 PCRE_LIB := $(PCRE_TOP)/lib
 
-LIB_INSTALL += $(wildcard $(PCRE_LIB)/lib*)
+LIB_INSTALLS += $(wildcard $(PCRE_LIB)/lib*)
