@@ -1,6 +1,6 @@
 PKG_ARCH = $(T_A)
 ifneq (,$(findstring linuxRT-, $(PKG_ARCH)))
-PKG_ARCH = rhel6-x86_64
+PKG_ARCH = rhel7-x86_64
 endif
 
 PCRE_TOP := $(PSPKG_ROOT)/release/pcre/8.37/$(PKG_ARCH)
