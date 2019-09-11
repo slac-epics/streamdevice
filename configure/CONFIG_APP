@@ -2,8 +2,10 @@
 
 include $(TOP)/configure/RELEASE
 -include $(TOP)/configure/RELEASE.$(EPICS_HOST_ARCH)
+ifdef T_A
 -include $(TOP)/configure/RELEASE.Common.$(T_A)
 -include $(TOP)/configure/RELEASE.$(EPICS_HOST_ARCH).$(T_A)
+endif
 
 ifneq ($(wildcard $(EPICS_BASE)/configure),)
 CONFIG=$(EPICS_BASE)/configure
@@ -17,8 +19,14 @@ INSTALL_LOCATION = $(TOP)
 ifdef INSTALL_LOCATION_APP
 INSTALL_LOCATION = $(INSTALL_LOCATION_APP)
 endif
+-include $(TOP)/configure/CONFIG_SITE
+-include $(TOP)/configure/CONFIG_SITE.$(EPICS_HOST_ARCH)
+-include $(TOP)/configure/CONFIG_SITE.$(EPICS_HOST_ARCH).Common
 
 ifdef T_A
+-include $(TOP)/configure/CONFIG_SITE.Common.$(T_A)
+-include $(TOP)/configure/CONFIG_SITE.$(EPICS_HOST_ARCH).$(T_A)
+
 -include $(TOP)/configure/O.$(T_A)/CONFIG_APP_INCLUDE
 endif
 
