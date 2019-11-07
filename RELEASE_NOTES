@@ -1,3 +1,7 @@
+R2.8.9-1.1.0  2019-11-06 Bruce Hill
+	Garth Brown fix for buffer overrun memory corruption segfault.
+	Make expectedLength ssize_t everywhere as it can be -1 
+
 R2.8.9-1.0.4  2019-09-25 Garth Brown
 	Use ASYN_MODULE_VERSION=R4.32-1.0.0 for non-ATCA, resolve conflict with ipmi
 
