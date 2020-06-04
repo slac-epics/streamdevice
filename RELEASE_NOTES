@@ -1,3 +1,6 @@
+R2.8.9-1.1.1  2020-06-04 Hugo Slepicka
+	Update asyn to R4.39-0.0.1
+
 R2.8.9-1.1.0  2019-11-06 Bruce Hill
 	Garth Brown fix for buffer overrun memory corruption segfault.
 	Make expectedLength ssize_t everywhere as it can be -1 
