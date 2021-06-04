@@ -538,6 +538,10 @@ scanString(const StreamFormat& fmt, const char* input,
         space_left--;
         size -= space_left; // update number of bytes copied to value
     }
+    if ( fmt.flags & fix_width_flag )
+    {
+		consumed = (ssize_t) fmt.width;
+    }
     return consumed;
 }
 
