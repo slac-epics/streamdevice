@@ -1,3 +1,6 @@
+R2.8.9-1.2.0	2021-06-03 Bruce Hill
+	scanString needs to consume the specified width for fixed width input flag.
+
 R2.8.9-1.1.2  2021-05-26 Bruce Hill
 	Update to asyn/R4.39-1.0.0
 
