@@ -1,3 +1,40 @@
+R2.8.9-1.2.1	2021-06-03 Bruce Hill
+	Update asyn to R4.39-1.0.1
+
+R2.8.9-1.2.0	2021-06-03 Bruce Hill
+	scanString needs to consume the specified width for fixed width input flag.
+
+R2.8.9-1.1.2  2021-05-26 Bruce Hill
+	Update to asyn/R4.39-1.0.0
+
+R2.8.9-1.1.1  2020-06-04 Hugo Slepicka
+	Update asyn to R4.39-0.0.1
+
+R2.8.9-1.1.0  2019-11-06 Bruce Hill
+	Garth Brown fix for buffer overrun memory corruption segfault.
+	Make expectedLength ssize_t everywhere as it can be -1 
+
+R2.8.9-1.0.4  2019-09-25 Garth Brown
+	Use ASYN_MODULE_VERSION=R4.32-1.0.0 for non-ATCA, resolve conflict with ipmi
+
+R2.8.9-1.0.3  2019-09-10 Bruce Hill
+	Add missing SLAC support for CONFIG_SITE* files
+	This fixes the missing PCRE support.
+
+R2.8.9-1.0.2  Jul/22/2019 - Marcio Donadio (marcio)
+	- Downgraded Asyn to R4.31-0.1.0 as this is the version used by the
+	  ATCA-based common platform modules.
+
+R2.8.9-1.0.1  2019-06-14 Bruce Hill
+	Add #include epicsStdio.h in StreamEpics.cc so I/O redirect works for report.
+
+R2.8.9-1.0.0  Marcio Donadio - May/30/2019
+			- Streamdevice 2.8.9 with support for a message engine that
+			  receives messages and decide when to print it to the IOC shell
+			  based on a configurable timeout in seconds. The engine has a
+			  polling time of 1 second.
+			- Added case for the message engine.
+
 R2.8.9-0.1.0  Marcio Donadio - May/29/2019
             - Streamdevice 2.8.9 working with the new Git Workflow.
 
