@@ -1,3 +1,14 @@
+R2.8.22-1.0.0	2022-12-09 Bruce Hill
+	Add a debug stmt in RawConverter::printLong
+	Fix include of stdint.h for vxWorks in ChecksumConverter.cc
+	scanString needs to consume the specified width for fixed width input flag.
+	Fix PCRE support for rhel7
+	Heads up about changes in the way IOC console messages must be activated
+	Added README related to SLAC changes
+	Cleanup of printf and implementation of the destructor
+	Support for a message engine that suppresses duplicates.
+	Basic changes needed to work and compile under the new Git Workflow.
+
 R2.8.9-1.2.1	2021-06-03 Bruce Hill
 	Update asyn to R4.39-1.0.1
 
@@ -36,25 +47,25 @@ R2.8.9-1.0.0  Marcio Donadio - May/30/2019
 			- Added case for the message engine.
 
 R2.8.9-0.1.0  Marcio Donadio - May/29/2019
-            - Streamdevice 2.8.9 working with the new Git Workflow.
+			- Streamdevice 2.8.9 working with the new Git Workflow.
 
 R2.8.8-0.1.0  Marcio Donadio - May/24/2019
-            - Changes to build for SLAC git workflow. No internal patches or
-              changes in source code were done in this release.
+			- Changes to build for SLAC git workflow. No internal patches or
+			  changes in source code were done in this release.
 
 R2.7.7-2.1.0: 23-May-2019, M. Donadio (marcio)
-    - Added case when protocol file has syntax error.
-    - Cleanup of printf and implementation of the destructor.
-    - Case for when the user register a negative timeout.
-    - Added README related to SLAC changes.
+	- Added case when protocol file has syntax error.
+	- Cleanup of printf and implementation of the destructor.
+	- Case for when the user register a negative timeout.
+	- Added README related to SLAC changes.
 
 R2.7.7-2.0.0: 14-May-2019, M. Donadio (marcio)
-    Support for a message engine that receives messages and decide when to
-    print it to the IOC shell based on a configurable timeout in seconds. The
-    engine has a polling time of 1 second.
+	Support for a message engine that receives messages and decide when to
+	print it to the IOC shell based on a configurable timeout in seconds. The
+	engine has a polling time of 1 second.
 
 R2.7.7-0.2:   20-Apr-2017, H. Slepicka (slepicka)
-    Bumping Asyn version to R4.31-0.1.0
+	Bumping Asyn version to R4.31-0.1.0
 
 R2.7.7-0.1:   31-Jan-2017, H. Slepicka (slepicka)
-    First version of streamdevice working with the new Git Workflow.
+	First version of streamdevice working with the new Git Workflow.
