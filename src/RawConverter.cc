@@ -46,6 +46,7 @@ printLong(const StreamFormat& fmt, StreamBuffer& output, long value)
     unsigned long width = prec;  // number of bytes in output
     if (prec > sizeof(long)) prec=sizeof(long);
     if (fmt.width > width) width = fmt.width;
+    debug ("RawConverter::printLong %ld, width %lu prec %u\n", value, width, prec);
 
     char byte = 0;
     if (fmt.flags & alt_flag) // little endian (lsb first)
